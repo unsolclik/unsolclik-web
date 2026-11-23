@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>unsolclik · Botiga de fotos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800;900&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky event bar → search/filters → photo grid → sticky cart bar; checkout in a side drawer */
+:root{
+  --bg:#f3ede2; --surface:#fbf8f2; --ink:#1c1915; --muted:#6b6358; --line:#e2d8c8;
+  --accent:#ff5a1f; --accent-ink:#ffffff; --ok:#1f8a4c;
+  --display:"Archivo","Arial Black",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-bottom:88px}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+
+.cover{position:relative;height:clamp(300px,46vw,560px);background:#0b0b0b;color:#fff;overflow:hidden}
+.cover .bg{position:absolute;inset:0;background-size:cover;background-repeat:no-repeat;opacity:0;transform:scale(1.04);transition:opacity 1.4s ease,transform 7s ease-out}
+.cover .bg.on{opacity:1;transform:scale(1)}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 40%,rgba(0,0,0,.65) 100%)}
+.cover .wrap{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:10px;padding-bottom:clamp(20px,4vw,44px)}
+.cover .logo{width:clamp(240px,46vw,560px);margin:0;background:linear-gradient(90deg,#fff 58.8%,var(--accent) 58.8%)}
+.cover .tag{color:rgba(255,255,255,.88);font-size:clamp(15px,1.8vw,19px)}
+.cover .demo{position:absolute;top:16px;right:16px;background:rgba(0,0,0,.45);border-color:rgba(255,255,255,.25);color:#fff}
+header{padding:20px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{width:200px;aspect-ratio:1499/251;background:linear-gradient(90deg,var(--ink) 58.8%,var(--accent) 58.8%);-webkit-mask:url(marca/logo-blanc.png) center/contain no-repeat;mask:url(marca/logo-blanc.png) center/contain no-repeat;margin-bottom:6px}
+.tag{color:var(--muted);font-size:14px}
+.demo{font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--muted)}
+
+.events{display:flex;gap:10px;overflow-x:auto;padding:12px 0 4px}
+.ev{flex:0 0 auto;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:8px 14px 8px 8px;cursor:pointer;min-width:240px;display:flex;gap:12px;align-items:center}
+.ev img{width:52px;height:52px;border-radius:8px;object-fit:cover;flex:0 0 auto}
+.ev b{display:block;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.01em}
+.ev small{color:var(--muted);font-size:13px}
+.ev[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+.hero{display:block;padding:16px 0 20px}
+.hero .txt{flex-direction:row!important;justify-content:space-between;align-items:flex-end;flex-wrap:wrap}
+.car{position:relative;margin:20px 0 4px}
+.track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;padding:2px 0}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 clamp(240px,30vw,360px);scroll-snap-align:start;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:2/3;border:0;padding:0;cursor:pointer;background:var(--line)}
+.slide img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s}
+.slide:hover img{transform:scale(1.03)}
+.slide .cap{position:absolute;left:0;right:0;bottom:0;padding:40px 14px 12px;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;text-align:left}
+.slide .cap b{display:block;font-family:var(--display);font-weight:800;font-size:16px;letter-spacing:-.01em}
+.slide .cap span{font-size:13px;opacity:.9}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:0;background:var(--surface);color:var(--ink);font-size:22px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.25);display:grid;place-items:center;z-index:2}
+.nav.prev{left:8px}.nav.next{right:8px}
+.dots{display:flex;gap:6px;justify-content:center;padding:10px 0 0}
+.dots button{width:8px;height:8px;border-radius:50%;border:0;background:var(--line);padding:0;cursor:pointer}
+.dots button[aria-current="true"]{background:var(--accent);width:22px;border-radius:4px}
+.hero .txt{display:flex;flex-direction:column;gap:18px}
+.shots{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.shots figure{margin:0;position:relative;border-radius:14px;overflow:hidden;aspect-ratio:2/3;background:var(--line)}
+.shots figure:nth-child(2){margin-top:48px}
+.shots img{width:100%;height:100%;object-fit:cover;display:block}
+.shots figcaption{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;border-radius:6px;padding:2px 8px}
+.real{position:absolute;top:8px;left:8px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;border-radius:6px;padding:2px 7px;text-transform:uppercase;letter-spacing:.04em}
+.hero h1{font-family:var(--display);font-weight:900;font-size:clamp(28px,4.4vw,44px);line-height:1.02;letter-spacing:-.03em;margin:0;text-wrap:balance}
+.hero p{margin:6px 0 0;color:var(--muted)}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.step{display:flex;gap:8px;align-items:center;font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.step i{font-style:normal;font-family:var(--display);font-weight:900;color:var(--accent)}
+
+.tools{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:12px 0;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:0 6px 0 14px;flex:1 1 260px;max-width:380px}
+.search label{font-family:var(--display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.search input{border:0;background:transparent;padding:12px 4px;flex:1;min-width:0;font-size:18px;font-variant-numeric:tabular-nums;outline:none}
+.search:focus-within{border-color:var(--accent)}
+.clear{border:0;background:transparent;cursor:pointer;color:var(--muted);padding:6px 8px;border-radius:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.found{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 0 6px}
+.found p{margin:0;color:var(--muted)}
+.found strong{color:var(--ink)}
+.allbtn{border:1.5px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
+.allbtn:hover{background:var(--accent);color:var(--accent-ink)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:8px 0 24px}
+.ph{position:relative;border-radius:10px;overflow:hidden;background:var(--line);aspect-ratio:4/5;width:100%;cursor:zoom-in;border:0;padding:0}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+img{-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
+.ph .meta{position:absolute;left:8px;bottom:8px;font-size:12px;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.sel{position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35);color:#fff;display:grid;place-items:center;cursor:pointer;font-weight:800;font-size:16px}
+.sel[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cell{position:relative}
+.cell.on .ph{box-shadow:0 0 0 3px var(--accent)}
+.empty{grid-column:1/-1;text-align:center;padding:48px 16px;color:var(--muted);background:var(--surface);border-radius:12px;border:1px dashed var(--line)}
+
+.prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;padding:8px 0 32px}
+.price{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.price b{font-family:var(--display);font-weight:900;font-size:26px;letter-spacing:-.02em}
+.price div{color:var(--muted);font-size:14px}
+.price.best{border-color:var(--accent)}
+.price.best div:first-child{color:var(--accent);font-weight:600}
+h2{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.01em;margin:16px 0 4px}
+
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:10;transform:translateY(110%);transition:transform .2s}
+.bar.show{transform:none}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.bar p{margin:0;font-size:14px;color:var(--muted)}
+.bar p strong{color:var(--ink);font-size:16px}
+.cta{background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:12px 20px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:none}
+.scrim.show{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:var(--surface);z-index:21;transform:translateX(105%);transition:transform .22s;display:flex;flex-direction:column}
+.drawer.show{transform:none}
+.dhead{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--line)}
+.dhead h3{margin:0;font-family:var(--display);font-weight:800;font-size:20px}
+.x{border:0;background:transparent;font-size:24px;cursor:pointer;line-height:1;padding:4px 8px;color:var(--muted)}
+.dbody{padding:16px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:14px}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.thumbs img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:6px;display:block}
+.pack{border:1.5px solid var(--accent);border-radius:12px;padding:12px 14px}
+.pack .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pack b{font-family:var(--display);font-weight:900;font-size:28px}
+.hint{font-size:14px;color:var(--muted);margin:4px 0 0}
+.hint.up{color:var(--ok);font-weight:600}
+.field label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+.field input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px;background:var(--bg)}
+.field input:focus{border-color:var(--accent);outline:none}
+.ref{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--bg);border-radius:8px;padding:8px 10px;word-break:break-all;color:var(--muted)}
+.dfoot{padding:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.dfoot .cta{justify-content:center;font-size:17px}
+.dfoot small{color:var(--muted);text-align:center}
+.cta[aria-disabled="true"]{opacity:.45;pointer-events:none}
+
+.lb{position:fixed;inset:0;z-index:30;display:none;place-items:center;padding:16px;background:rgba(0,0,0,.85)}
+.lb.show{display:grid}
+.lb figure{margin:0;max-width:min(1000px,100%);display:flex;flex-direction:column;gap:10px}
+.lb img{max-width:100%;max-height:72vh;border-radius:8px;display:block}
+.lb figcaption{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#fff;flex-wrap:wrap}
+.lb .x{color:#fff;position:absolute;top:10px;right:12px;font-size:32px}
+
+.modal{position:fixed;inset:0;z-index:40;display:none;place-items:center;padding:16px;background:rgba(0,0,0,.6)}
+.modal.show{display:grid}
+.modal .box{background:var(--surface);border-radius:14px;max-width:460px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.modal h3{margin:0;font-family:var(--display);font-weight:800}
+.modal p{margin:0;color:var(--muted);font-size:15px}
+.packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;padding:8px 0 12px}
+.packc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.packc b{font-family:var(--display);font-weight:800;font-size:18px;letter-spacing:-.01em}
+.packc p{margin:0;color:var(--muted);font-size:14px;flex:1}
+.packc .q{font-size:13px;font-weight:600;color:var(--accent)}
+.packc button{align-self:flex-start;margin-top:6px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);border-radius:10px;padding:8px 14px;font-weight:600;cursor:pointer}
+.packc button:hover{background:var(--accent);color:var(--accent-ink)}
+.askall{display:flex;justify-content:center;padding:4px 0 36px}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--accent)}
+.opt input{margin-top:4px;accent-color:var(--accent)}
+.opt small{display:block;color:var(--muted)}
+.field textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px;background:var(--bg);min-height:70px;resize:vertical;font:inherit;color:inherit}
+.field textarea:focus{border-color:var(--accent);outline:none}
+.err{color:#c0392b;font-size:14px;margin:0;min-height:1.2em}
+.cta.sec{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.sec2{padding:28px 0 8px}
+.sec2 h2{font-size:24px;margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 14px;max-width:62ch}
+.org{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;background:var(--ink);color:var(--bg);border-radius:16px;padding:24px;align-items:center}
+.org h2{color:var(--bg)}
+.org>*{min-width:0}
+.org .cta,.free .cta,.askall .cta{white-space:normal;text-align:center}
+.org .lead{color:rgba(243,237,226,.75)}
+.org ul{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:8px}
+.org li{display:flex;gap:10px;align-items:baseline}
+.org li b{color:var(--accent);font-family:var(--display);white-space:nowrap;min-width:74px}
+.org .pics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.org .pics img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:10px;display:block}
+.free{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1.5px dashed var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface)}
+.free b{font-family:var(--display);font-weight:800;font-size:18px}
+.free p{margin:2px 0 0;color:var(--muted);font-size:14px;max-width:56ch}
+.next{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.nextc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;gap:14px;align-items:center}
+.nextc .d{font-family:var(--display);font-weight:900;color:var(--accent);font-size:14px;text-transform:uppercase;line-height:1.1;min-width:64px}
+.nextc p{margin:0;font-size:14px;color:var(--muted)}
+.about{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.avatar{width:96px;height:96px;border-radius:50%;background:var(--ink) center/cover no-repeat;display:grid;place-items:center;color:var(--bg);font-family:var(--display);font-weight:900;font-size:30px}
+.about p{margin:4px 0;color:var(--muted)}
+.about .tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.about .tags span{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--bg)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.lnk{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--ink);color:var(--ink);text-decoration:none;border-radius:10px;padding:8px 14px;font-weight:600;background:transparent;cursor:pointer;font-size:15px}
+footer{margin-top:36px;border-top:1px solid var(--line);padding:24px 0 32px;color:var(--muted);font-size:14px;display:grid;gap:12px}
+footer details summary{cursor:pointer;color:var(--ink);font-weight:600}
+footer details p{margin:8px 0;max-width:70ch}
+footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg,var(--ink) 58.8%,var(--accent) 58.8%);-webkit-mask:url(marca/logo-blanc.png) center/contain no-repeat;mask:url(marca/logo-blanc.png) center/contain no-repeat}
+.lbnav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:28px;cursor:pointer;display:grid;place-items:center}
+.lbnav.l{left:10px}.lbnav.r{right:10px}
+.lbcount{color:rgba(255,255,255,.7);font-size:13px}
+.ev small i{font-style:normal;color:var(--accent);font-weight:600}
+@media (max-width:760px){ .folders{grid-template-columns:repeat(2,1fr);gap:8px} .folder{aspect-ratio:1/1} .folder .fcap b{font-size:15px} .org{grid-template-columns:1fr;padding:20px} .about{grid-template-columns:1fr;text-align:left} .lbnav{display:none} }
+.idline{font-family:var(--display);font-weight:800;font-size:clamp(18px,2.4vw,24px);color:var(--accent);margin:6px 0 0;letter-spacing:-.01em;text-wrap:balance}
+.launch{display:none;align-items:center;gap:12px;flex-wrap:wrap;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 16px;margin:4px 0 8px}
+.launch.show{display:flex}
+.launch b{color:var(--accent)}
+.launch .cd{font-variant-numeric:tabular-nums;font-weight:700;background:rgba(255,255,255,.1);border-radius:8px;padding:2px 8px}
+.packc.best{border:2px solid var(--accent);position:relative}
+.packc .price{background:none;border:0;padding:0;border-radius:0;font-family:var(--display);font-weight:900;font-size:30px;letter-spacing:-.02em;line-height:1}
+.packc .price s{font-size:18px;color:var(--muted);font-weight:700;margin-left:6px}
+.packc .price small{font-size:14px;color:var(--muted);font-weight:600}
+.stack{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px;font-size:14px}
+.stack li{display:flex;gap:8px;align-items:flex-start}
+.stack li::before{content:"✓";color:var(--accent);font-weight:800}
+.anchor{font-size:13px;color:var(--ok);font-weight:600}
+.badge{position:absolute;top:-11px;left:14px;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:800;border-radius:999px;padding:2px 10px;text-transform:uppercase;letter-spacing:.04em}
+.guar{text-align:center;color:var(--muted);font-size:14px;margin:0 0 8px}
+.free{align-items:center}
+.free .story{width:110px;aspect-ratio:9/16;border-radius:10px;overflow:hidden;flex:0 0 auto;background:var(--ink)}
+.free .story img{width:100%;height:100%;display:block;object-fit:cover}
+.nextc{flex-wrap:wrap}
+.nextc .acts{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.nextc .acts button{border:1.5px solid var(--accent);background:transparent;color:var(--accent);border-radius:9px;padding:6px 10px;font-weight:600;cursor:pointer;font-size:14px}
+.nextc .acts button.pri{background:var(--accent);color:var(--accent-ink)}
+.qrbox{background:#fff;padding:14px;border-radius:12px;align-self:center}
+.org .lnk{border-color:var(--bg);color:var(--bg);margin-top:8px}
+.folders{display:none;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:4px 0 16px}
+.folders.show{display:grid}
+.folder{position:relative;border:0;padding:0;border-radius:14px;overflow:hidden;aspect-ratio:4/3;cursor:pointer;background:var(--ink);text-align:left;color:#fff}
+.folder img{width:100%;height:100%;object-fit:cover;display:block;opacity:.85;transition:transform .4s}
+.folder:hover img{transform:scale(1.04)}
+.folder .fcap{position:absolute;inset:auto 0 0 0;padding:34px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.8))}
+.folder .fcap b{display:block;font-family:var(--display);font-weight:800;font-size:17px}
+.folder .fcap span{font-size:13px;opacity:.9}
+.folder .ftab{position:absolute;top:10px;left:10px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:800;border-radius:6px;padding:2px 8px;text-transform:uppercase;letter-spacing:.04em}
+.folder[aria-pressed="true"]{box-shadow:0 0 0 3px var(--accent)}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:50;display:none;max-width:90vw}
+.toast.show{display:block}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr}
+  .slide{flex-basis:74vw}
+  .nav{display:none}
+  .grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .bar .wrap p span{display:none}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<section class="cover" aria-label="unsolclik, fotografia esportiva">
+  <div class="bg on" style="background-image:url(fotos/portada-futbol.jpg);background-position:center 55%"></div>
+  <div class="bg" style="background-image:url(fotos/portada-trail.jpg);background-position:55% 60%"></div>
+  <div class="bg" style="background-image:url(fotos/portada-ciclocros.jpg);background-position:center 60%"></div>
+  <div class="wrap">
+    <div class="logo" role="img" aria-label="unsolclik."></div>
+    <div class="tag">Un sol clic, al moment perfecte · Fotografia esportiva</div>
+  </div>
+</section>
+<div class="wrap">
+
+  <section class="car" aria-label="Fotos destacades" aria-roledescription="carrusel">
+    <div class="track" id="track"></div>
+    <button class="nav prev" id="prev" aria-label="Foto anterior">‹</button>
+    <button class="nav next" id="next" aria-label="Foto següent">›</button>
+    <div class="dots" id="dots"></div>
+  </section>
+
+  <nav class="events" id="events" aria-label="Esdeveniments"></nav>
+
+  <section class="hero">
+    <div class="txt">
+      <div><h1 id="evTitle"></h1><p class="idline" id="idline"></p><p id="evSub"></p></div>
+      <div class="steps" aria-label="Com funciona">
+        <div class="step"><i>1</i>Busca el teu dorsal</div>
+        <div class="step"><i>2</i>Tria les fotos</div>
+        <div class="step"><i>3</i>Paga i rep-les al teu correu</div>
+      </div>
+    </div>
+
+  </section>
+  <div class="launch" id="launch"></div>
+
+  <div class="folders" id="folders"></div>
+
+  <div class="tools">
+    <div class="search">
+      <label for="dorsal">Dorsal</label>
+      <input id="dorsal" inputmode="numeric" autocomplete="off" placeholder="p. ex. 127">
+      <button class="clear" id="clear" aria-label="Esborra la cerca">✕</button>
+    </div>
+    <div class="chips" id="chips" aria-label="Punt del recorregut"></div>
+  </div>
+
+  <div class="found" id="found"></div>
+  <div class="grid" id="grid"></div>
+
+  <h2>Packs de fotografies</h2>
+  <div class="packs" id="packs"></div>
+  <p class="guar">🛡️ Garantia: si les fotos no t'agraden, et tornem els diners.</p>
+
+  <div class="free">
+    <div class="story"><img id="storyPrev" alt="Exemple de foto amb marc per a historias"></div>
+    <div style="flex:1;min-width:200px"><b>Una foto gratis per a Instagram</b><p>Tria una foto teva i menciona <strong data-ig></strong> quan la pengis. T'enviem la versió per a historias, amb el marc de la cursa i sense marques d'aigua.</p></div>
+    <button class="cta" data-pack="free">Vull la meva foto gratis</button>
+  </div>
+
+  <section class="sec2" id="organitzadors">
+    <div class="org">
+      <div>
+        <h2>Cobrim el teu esdeveniment</h2>
+        <p class="lead">Per a organitzadors de curses, clubs i entitats esportives.</p>
+        <ul>
+          <li><b>48 h</b><span>Fotos editades i lliurades en 48 hores.</span></li>
+          <li><b>Galeria</b><span>Una pàgina com aquesta perquè cada participant trobi les seves fotos pel dorsal.</span></li>
+          <li><b>Xarxes</b><span>Una selecció per a les xarxes de l'organització, a punt per publicar.</span></li>
+          <li><b>Enllaç</b><span>Enllaç i codi QR de la galeria per enviar als participants l'endemà i posar a la zona de meta.</span></li>
+          <li><b>Vendes</b><span>Un percentatge de les vendes de fotos per a l'organització.</span></li>
+          <li><b>Esports</b><span>Trail, curses, ciclocròs, futbol i tota mena d'esdeveniments esportius.</span></li>
+        </ul>
+        <button class="cta" data-pack="event">Demana pressupost per al teu esdeveniment</button>
+        <div><button class="lnk" id="qrBtn">Veure el QR d'una galeria</button></div>
+      </div>
+      <div class="pics" id="orgPics"></div>
+    </div>
+  </section>
+
+  <section class="sec2">
+    <h2>Properes curses</h2>
+    <p class="lead">Les fotos es pengen aquí 48 hores després de cada esdeveniment. Deixa el teu dorsal i t'avisem, o reserva-les ja a preu de preventa.</p>
+    <div class="next" id="upcoming"></div>
+  </section>
+
+  <section class="sec2">
+    <div class="about">
+      <div class="avatar" id="avatar">SS</div>
+      <div>
+        <h2 style="margin:0">Hola, sóc el Sergi</h2>
+        <p>Fotògraf esportiu. Busco el moment just: l'esforç a la pujada, la roda que entra al fang, la pilota abans del xut. Un sol clic, al moment perfecte.</p>
+        <div class="tags"><span>Congost Trail Challenge</span><span>Ciclocròs La Garriga · Copa Catalana</span><span>Futbol amateur i base</span></div>
+        <div class="btnrow"><a class="lnk" id="igLink" href="#" rel="noopener">Instagram <span data-ig></span></a><button class="lnk" data-pack="event">Contacta</button></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="flogo" role="img" aria-label="unsolclik."></div>
+    <div class="btnrow"><button class="lnk" data-pack="remove">Vols que retirem una foto teva?</button></div>
+    <details>
+      <summary>Privacitat i drets d'imatge</summary>
+      <p>Les fotos d'aquesta pàgina es fan en esdeveniments esportius públics perquè els participants les puguin veure i obtenir. Les publiquem en baixa resolució i amb marca d'aigua; els originals només es lliuren a qui els sol·licita.</p>
+      <p>Si surts en una foto i no vols que es mostri, o ets el pare, la mare o el tutor d'un menor que hi surt, pots demanar que la retirem amb el botó de dalt. La retirarem com més aviat millor.</p>
+      <p>Les dades que ens envies en una sol·licitud (nom i contacte) només les fem servir per respondre't. Responsable: Sergi Segú · unsolclik.</p>
+    </details>
+    <div>© 2026 unsolclik · Fotografia esportiva</div>
+  </footer>
+</div>
+
+<div class="bar" id="bar"><div class="wrap">
+  <p><strong id="barCount"></strong> <span id="barPack"></span></p>
+  <button class="cta" id="openCart">Comprar</button>
+</div></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="La teva comanda">
+  <div class="dhead"><h3 id="dTitle">Sol·licita preu</h3><button class="x" id="closeCart" aria-label="Tanca">×</button></div>
+  <div class="dbody">
+    <div class="pack" id="pack"></div>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="opts" id="opts" role="radiogroup" aria-label="Tipus de pack">
+      <label class="opt"><input type="radio" name="ptype" value="buy" checked><span id="optBuy">Les fotos que he triat</span></label>
+      <label class="opt"><input type="radio" name="ptype" value="full"><span id="optFull">Tota la teva cursa</span></label>
+      <label class="opt"><input type="radio" name="ptype" value="family"><span id="optFam">Pack família</span></label>
+      <label class="opt"><input type="radio" name="ptype" value="equip"><span>Equip o club<small>Pressupost a mida</small></span></label>
+    </div>
+    <div class="field"><label for="rname">Nom</label><input id="rname" autocomplete="name" placeholder="El teu nom"></div>
+    <div class="field"><label for="email" id="emailL">Correu o telèfon</label><input id="email" autocomplete="email" placeholder="nom@correu.cat o 600 000 000"></div>
+    <div class="field"><label for="rmsg" id="rmsgL">Comentari (opcional)</label><textarea id="rmsg" placeholder="P. ex. dorsal 127, vull les de la meta"></textarea></div>
+    <p class="err" id="err" role="alert"></p>
+  </div>
+  <div class="dfoot">
+    <a class="cta" id="sendWa" href="#" rel="noopener">Envia per WhatsApp</a>
+    <a class="cta sec" id="sendMail" href="#" rel="noopener">Envia per correu</a>
+    <small id="contactTxt"></small>
+  </div>
+</aside>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+  <button class="x" id="lbClose" aria-label="Tanca">×</button>
+  <button class="lbnav l" id="lbPrev" aria-label="Foto anterior">‹</button>
+  <button class="lbnav r" id="lbNext" aria-label="Foto següent">›</button>
+  <figure><img id="lbImg" alt=""><figcaption><span><span id="lbCap"></span><br><span class="lbcount" id="lbCount"></span></span><button class="cta" id="lbSel"></button></figcaption></figure>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="box">
+    <h3>Mode demostració</h3>
+    <p>Quan posis el teu WhatsApp i el teu correu a <code>CONFIG</code>, aquest botó obrirà el missatge ja escrit. Rebries això:</p>
+    <div class="ref" id="modalRef" style="white-space:pre-wrap"></div>
+    <button class="cta" id="modalOk" style="align-self:flex-end">Entesos</button>
+  </div>
+</div>
+<div class="modal" id="qrModal" role="dialog" aria-modal="true" aria-label="Codi QR de la galeria">
+  <div class="box">
+    <h3 id="qrTitle">Codi QR</h3>
+    <p>Escaneja'l per anar directament a la galeria. Fes-ne una captura per imprimir-lo o enviar-lo als participants.</p>
+    <div class="chips" id="qrEvents"></div>
+    <div class="qrbox" id="qr"></div>
+    <div class="ref" id="qrUrl"></div>
+    <button class="cta" id="qrOk" style="align-self:flex-end">Tanca</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+/* ============ CONFIGURACIÓ ============
+   El teu WhatsApp (amb prefix 34, sense espais ni +) i el correu on vols rebre les sol·licituds. */
+const CONFIG = {
+  whatsapp: "34639234492",
+  email: "sergi.gs10@gmail.com",
+  instagram: "unsolclik",      // el teu usuari d'Instagram, sense @
+  siteUrl: "https://unsolclik.github.io/unsolclik-web/",   // adreça pública de la galeria (per als QR)
+  prices: { single:6, full:25, fullLaunch:19, family:39, presale:15 },
+  launchHours: 72,             // hores amb preu de llançament des que es publiquen les fotos
+  /* Enllaços de pagament de Stripe (Payment Links). Mentre estiguin buits, la comanda arriba per WhatsApp. */
+  stripe: { buy:"", full:"", fullLaunch:"", family:"", presale:"" },
+  avatar: ""                   // ruta d'una foto teva, p. ex. "fotos/sergi.jpg"
+};
+/* Properes curses: afegeix-ne o treu-ne */
+const UPCOMING = [
+  { id:"ccnit26", when:"Nov. 2026", name:"Ciclocròs nocturn", note:"Data i lloc per confirmar" }
+];
+const HEADLINES = { bike:"Tu, entrant al fang sense aixecar el peu.", run:"Tu, a l'última baixada, donant-ho tot.", foot:"Tu, un segon abans de tocar la pilota." };
+
+/* Esdeveniments d'exemple: en producció, una llista de fotos (fitxer, dorsals, punt) per esdeveniment */
+const EVENTS = [
+  { id:"cclg26", code:"CCLG26", name:"Ciclocròs La Garriga 2026", sub:"Copa Catalana de Ciclocròs · La Garriga", sport:"bike",
+    points:["Sortida","Bosc","Escales","Meta"], dorsals:[12,27,33,41,58,64,77,85,102,118,127,140], n:0, seed:7, published:"2026-11-12T20:00:00+01:00",
+    real:[{file:"fotos/cclg-35.jpg",dorsals:[35],point:"Bosc"},{file:"fotos/cclg-520.jpg",dorsals:[520],point:"Bosc"}] },
+  { id:"ctc26", code:"CTC26", name:"Congost Trail Challenge 2026", sub:"24 d'octubre de 2026 · Aiguafreda", sport:"run",
+    points:["Sortida","Km 8","Pujada","Baixada tècnica","Meta"], dorsals:[5,19,23,46,88,91,104,133,156,171,205,230,248,262], n:0, seed:23, date:"24 d'octubre de 2026", published:"2026-10-26T20:00:00+02:00",
+    real:[{file:"fotos/ctc-60.jpg",dorsals:[60],point:"Baixada tècnica"},{file:"fotos/ctc-390.jpg",dorsals:[390],point:"Baixada tècnica"},{file:"fotos/ctc-pujada.jpg",dorsals:[],point:"Pujada"}] },
+  { id:"fut", code:"FUT26", name:"Futbol", sub:"CF Olímpic La Garriga · Temporada 2026-27", sport:"foot",
+    points:["Juvenil B","Amateur femení","Juvenil A"], allLabel:"Tots els partits", folderWord:"partit",
+    /* Una carpeta per partit: el nom ha de coincidir amb "point" de cada foto */
+    folders:{
+      "Juvenil B":{ title:"Juvenil B", rival:"", date:"Novembre 2026", cover:"fotos/jb/jb-06.jpg" },
+      "Amateur femení":{ title:"Amateur femení", rival:"", date:"Octubre 2026", cover:"fotos/fut-fem-20.jpg" },
+      "Juvenil A":{ title:"Juvenil A", rival:"", date:"Novembre 2026", cover:"fotos/fut-juv.jpg" }
+    }, dorsals:[1,2,3,4,5,6,7,8,9,10,11,14,16,17,19,21], n:0, seed:41, published:"2026-11-23T13:00:00+01:00",
+    real:[{file:"fotos/fut-fem-20.jpg",dorsals:[20],point:"Amateur femení"},{file:"fotos/fut-juv.jpg",dorsals:[],point:"Juvenil A"},{file:"fotos/fut-juv-porter.jpg",dorsals:[1],point:"Juvenil A"},{file:"fotos/jb/jb-01.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-02.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-03.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-04.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-05.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-06.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-07.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-08.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-09.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-10.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-11.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-12.jpg",dorsals:[],point:"Juvenil B"},{file:"fotos/jb/jb-13.jpg",dorsals:[],point:"Juvenil B"}] }
+];
+
+/* ---------- utilitats ---------- */
+function rng(seed){ let s=seed>>>0; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(4,"0");
+
+EVENTS.forEach(ev=>{
+  const r=rng(ev.seed); ev.photos=ev.real.map((x,i)=>({ id:pad(i*3+1), dorsals:x.dorsals, point:x.point, file:x.file, seed:0, hour:"" }));
+  for(let i=0;i<ev.n;i++){
+    const d=[ev.dorsals[Math.floor(r()*ev.dorsals.length)]];
+    if(r()<.22){ const d2=ev.dorsals[Math.floor(r()*ev.dorsals.length)]; if(d2!==d[0]) d.push(d2); }
+    ev.photos.push({ id:pad(i*7+21), dorsals:d, point:ev.points[Math.floor(r()*ev.points.length)], seed:ev.seed*1000+i, hour:`${10+Math.floor(i/ (ev.n/3))}:${String(Math.floor(r()*60)).padStart(2,"0")}` });
+  }
+});
+
+/* ---------- fotos d'exemple dibuixades amb canvas, amb la marca d'aigua d'unsolclik ---------- */
+const cache={};
+const imgs={};
+function loadImgs(){ return Promise.all(EVENTS.flatMap(e=>e.real).map(x=>new Promise(res=>{ const im=new Image(); im.onload=()=>{imgs[x.file]=im;res();}; im.onerror=res; im.src=x.file; }))); }
+function drawPhoto(ev,p,w,h){
+  const key=ev.id+p.id+w; if(cache[key]) return cache[key];
+  if(p.file){
+    const im=imgs[p.file]; if(!im) return p.file;
+    const dpr=Math.min(window.devicePixelRatio||1,3), cw=Math.min(im.naturalWidth,Math.round(w*dpr));
+    const c=document.createElement("canvas"); c.width=cw; c.height=Math.round(cw*im.naturalHeight/im.naturalWidth);
+    const g=c.getContext("2d"); g.imageSmoothingEnabled=true; g.imageSmoothingQuality="high";
+    g.drawImage(im,0,0,c.width,c.height); /* marques ja gravades a l'arxiu */
+    try{ return cache[key]=c.toDataURL("image/jpeg",.92); }catch(e){ return cache[key]=p.file; }
+  }
+  const c=document.createElement("canvas"); c.width=w; c.height=h; const g=c.getContext("2d"); const r=rng(p.seed);
+  const hue=ev.sport==="bike"? 25+r()*30 : ev.sport==="foot"? 112+r()*14 : 90+r()*60;
+  const sky=g.createLinearGradient(0,0,0,h);
+  sky.addColorStop(0,`hsl(${hue+170},30%,${55+r()*15}%)`); sky.addColorStop(1,`hsl(${hue+150},25%,80%)`);
+  g.fillStyle=sky; g.fillRect(0,0,w,h);
+  // fons difuminat (arbres / públic)
+  for(let i=0;i<14;i++){ g.fillStyle=`hsla(${hue+60+r()*40},25%,${25+r()*20}%,.55)`; g.beginPath(); g.ellipse(r()*w,h*.5+r()*h*.08,w*(.06+r()*.1),h*(.12+r()*.18),0,0,7); g.fill(); }
+  g.fillStyle=ev.sport==="foot"?`hsl(${hue},45%,34%)`:`hsl(${hue},${ev.sport==="bike"?35:30}%,${ev.sport==="bike"?38:32}%)`; g.fillRect(0,h*.68,w,h*.32);
+  if(ev.sport==="foot"){ g.strokeStyle="rgba(255,255,255,.7)"; g.lineWidth=Math.max(2,h*.008); g.beginPath(); g.moveTo(0,h*.86); g.lineTo(w,h*.83); g.stroke(); g.beginPath(); g.ellipse(w*.75,h*.9,w*.3,h*.05,0,Math.PI,0); g.stroke(); }
+  // ratlles de moviment
+  g.strokeStyle="rgba(255,255,255,.18)"; g.lineWidth=w*.004;
+  for(let i=0;i<10;i++){ const y=h*(.3+r()*.5); g.beginPath(); g.moveTo(r()*w*.3,y); g.lineTo(w*(.3+r()*.3),y); g.stroke(); }
+  // esportista
+  const cx=w*(.38+r()*.24), base=h*.8, s=h/320, kit=`hsl(${Math.floor(r()*360)},65%,45%)`;
+  g.save(); g.translate(cx,base); g.scale(s,s); g.lineCap="round"; g.lineJoin="round";
+  if(ev.sport==="foot"){
+    const fem=p.point==="Amateur femení", shirt=fem?"hsl(330,55%,45%)":"hsl(215,65%,42%)";
+    g.strokeStyle="#e9c6a5"; g.lineWidth=11;
+    g.beginPath(); g.moveTo(-4,-82); g.lineTo(-12,-45); g.lineTo(-16,-4); g.moveTo(6,-82); g.lineTo(34,-58); g.lineTo(62,-50); g.stroke();
+    g.strokeStyle="#111"; g.lineWidth=12; g.beginPath(); g.moveTo(-14,-26); g.lineTo(-16,-4); g.moveTo(48,-54); g.lineTo(62,-50); g.stroke();
+    g.strokeStyle=fem?"#1d1d1d":"#f2f2f2"; g.lineWidth=24; g.beginPath(); g.moveTo(0,-100); g.lineTo(2,-80); g.stroke();
+    g.strokeStyle=shirt; g.lineWidth=32; g.beginPath(); g.moveTo(1,-98); g.lineTo(6,-160); g.stroke();
+    g.lineWidth=10; g.beginPath(); g.moveTo(2,-152); g.lineTo(-34,-126); g.moveTo(10,-152); g.lineTo(40,-136); g.stroke();
+    g.fillStyle="#e9c6a5"; g.beginPath(); g.arc(9,-182,15,0,7); g.fill();
+    g.fillStyle="#3a2618"; g.beginPath(); g.arc(9,-188,15,Math.PI,0); g.fill();
+    if(fem){ g.strokeStyle="#3a2618"; g.lineWidth=8; g.beginPath(); g.moveTo(-4,-190); g.quadraticCurveTo(-26,-182,-22,-160); g.stroke(); }
+    g.fillStyle="#fff"; g.font="800 18px Archivo, Arial"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(p.dorsals[0],4,-128);
+    g.fillStyle="#fff"; g.strokeStyle="#111"; g.lineWidth=2.5; g.beginPath(); g.arc(80,-42,11,0,7); g.fill(); g.stroke();
+    g.fillStyle="#111"; g.beginPath(); g.arc(80,-42,4,0,7); g.fill();
+  } else if(ev.sport==="bike"){
+    g.strokeStyle="#1b1b1b"; g.lineWidth=6;
+    [-55,55].forEach(x=>{ g.beginPath(); g.arc(x,-38,38,0,7); g.stroke(); });
+    g.lineWidth=7; g.strokeStyle="#2b2b2b";
+    g.beginPath(); g.moveTo(-55,-38); g.lineTo(-10,-38); g.lineTo(30,-95); g.lineTo(-25,-95); g.closePath(); g.moveTo(-10,-38); g.lineTo(-25,-95); g.moveTo(30,-95); g.lineTo(55,-38); g.stroke();
+    g.strokeStyle="#222"; g.lineWidth=13; g.beginPath(); g.moveTo(-20,-110); g.lineTo(-5,-70); g.lineTo(-10,-40); g.stroke();
+    g.strokeStyle=kit; g.lineWidth=26; g.beginPath(); g.moveTo(-22,-112); g.lineTo(25,-150); g.stroke();
+    g.lineWidth=10; g.beginPath(); g.moveTo(22,-148); g.lineTo(38,-110); g.stroke();
+    g.fillStyle="#e9c6a5"; g.beginPath(); g.arc(42,-165,15,0,7); g.fill(); g.fillStyle=kit; g.beginPath(); g.arc(42,-170,16,Math.PI,0); g.fill();
+    bib(g,-6,-140,p.dorsals[0],-.65);
+  } else {
+    g.strokeStyle="#2a2a2a"; g.lineWidth=13;
+    g.beginPath(); g.moveTo(0,-95); g.lineTo(-25,-48); g.lineTo(-48,-8); g.moveTo(0,-95); g.lineTo(28,-55); g.lineTo(18,-2); g.stroke();
+    g.strokeStyle=kit; g.lineWidth=30; g.beginPath(); g.moveTo(0,-98); g.lineTo(8,-160); g.stroke();
+    g.lineWidth=10; g.beginPath(); g.moveTo(5,-152); g.lineTo(-28,-118); g.moveTo(10,-152); g.lineTo(38,-128); g.stroke();
+    g.fillStyle="#e9c6a5"; g.beginPath(); g.arc(12,-182,15,0,7); g.fill(); g.fillStyle="#222"; g.fillRect(-4,-196,32,8);
+    bib(g,5,-128,p.dorsals[0],-.1);
+  }
+  g.restore();
+  if(p.dorsals[1]){ // segon corredor, més lluny
+    g.save(); g.globalAlpha=.85; g.translate(w*(cx>w/2?.18:.8),h*.74); g.scale(s*.55,s*.55);
+    g.strokeStyle="hsl(210,60%,40%)"; g.lineWidth=28; g.lineCap="round"; g.beginPath(); g.moveTo(0,-100); g.lineTo(5,-160); g.stroke();
+    g.fillStyle="#e9c6a5"; g.beginPath(); g.arc(8,-182,15,0,7); g.fill(); bib(g,3,-128,p.dorsals[1],0); g.restore();
+  }
+  watermark(g,w,h);
+  return cache[key]=c.toDataURL("image/jpeg",.82);
+}
+function bib(g,x,y,n,rot){ g.save(); g.translate(x,y); g.rotate(rot); g.fillStyle="#fff"; g.fillRect(-17,-12,34,24); g.fillStyle="#111"; g.font="800 15px Archivo, Arial"; g.textAlign="center"; g.textBaseline="middle"; g.fillText(n,0,1); g.restore(); }
+let logo=null;
+function loadLogo(){ return new Promise(res=>{ const im=new Image(); im.onload=()=>{logo=im;res();}; im.onerror=res; im.src="marca/logo-blanc.png"; }); }
+function watermark(g,w,h){ // logo blanc, 68% d'opacitat, ample = 22% del costat curt, ombra molt suau
+  const target=Math.min(w,h)*.22;
+  if(logo){ const lh=target*logo.naturalHeight/logo.naturalWidth, m=Math.min(w,h)*.04;
+    g.save(); g.imageSmoothingQuality="high"; g.globalAlpha=.68; g.shadowColor="rgba(0,0,0,.22)"; g.shadowBlur=lh*.18; g.drawImage(logo,w-target-m,h-lh-m,target,lh); g.restore(); return; } g.save(); g.font=`900 100px Archivo, Arial`; const m=g.measureText("unsolclik.").width;
+  const size=100*target/m; g.font=`900 ${size}px Archivo, Arial`; g.globalAlpha=.68; g.fillStyle="#fff";
+  g.shadowColor="rgba(0,0,0,.25)"; g.shadowBlur=size*.25; g.textAlign="right"; g.textBaseline="bottom";
+  g.fillText("unsolclik.",w-size*.6,h-size*.5); g.restore();
+}
+
+/* ---------- estat ---------- */
+const state={ ev:EVENTS[0], q:"", point:null, carts:{}, dorsalPack:{} };
+const cart=()=> state.carts[state.ev.id] ||= new Set();
+const shown=()=> state.ev.photos.filter(p=>(!state.q||p.dorsals.includes(+state.q)) && (!state.point||p.point===state.point));
+
+/* ---------- render ---------- */
+function renderEvents(){
+  $("events").innerHTML=EVENTS.map(e=>`<button class="ev" data-id="${e.id}" aria-pressed="${e===state.ev}"><img alt="" src="${e.real[0]?e.real[0].file:drawPhoto(e,e.photos[0],160,160)}"><span><b>${e.name}</b><small>${e.photos.length} fotos · ${e.date?e.date:e.sub.split("·").pop().trim()}</small></span></button>`).join("");
+}
+function renderHead(){
+  $("evTitle").textContent=state.ev.name; $("evSub").textContent=state.ev.sub; $("idline").textContent=HEADLINES[state.ev.sport]||""; renderLaunch();
+  renderFolders();
+  $("chips").innerHTML=[null,...state.ev.points.filter(pt=>state.ev.photos.some(p=>p.point===pt))].map(p=>`<button class="chip" data-p="${p??""}" aria-pressed="${state.point===p}">${p??(state.ev.allLabel||"Tot el recorregut")}</button>`).join("");
+}
+function renderFolders(){
+  const ev=state.ev, el=$("folders");
+  if(!ev.folders){ el.classList.remove("show"); el.innerHTML=""; return; }
+  el.classList.add("show");
+  el.innerHTML=ev.points.filter(pt=>ev.photos.some(p=>p.point===pt)).map(pt=>{
+    const f=ev.folders[pt]||{title:pt}, n=ev.photos.filter(p=>p.point===pt).length;
+    const title=f.rival? `${f.title} vs ${f.rival}` : f.title;
+    return `<button class="folder" data-folder="${pt}" aria-pressed="${state.point===pt}"><img alt="" src="${f.cover||""}"><span class="ftab">${ev.folderWord||"carpeta"}</span><span class="fcap"><b>${title}</b><span>${[f.date,n+" "+(n===1?"foto":"fotos")].filter(Boolean).join(" · ")}</span></span></button>`;
+  }).join("");
+}
+function renderGrid(){
+  const list=shown(), c=cart();
+  const dp=state.dorsalPack[state.ev.id];
+  let f="";
+  if(state.q){
+    f = list.length ? `<p><strong>${list.length} ${list.length===1?"foto":"fotos"}</strong> amb el ${state.ev.sport==="foot"?"número":"dorsal"} ${state.q}${state.point?" · "+state.point:""}</p><button class="allbtn" id="allBtn">Vull tota la meva cursa · ${fullPrice()} €</button>`
+                    : `<p>Cap foto amb el dorsal <strong>${state.q}</strong> encara. Si hi has corregut, escriu-nos i la busquem a mà.</p>`;
+  } else f=`<p><strong>${list.length} ${list.length===1?"foto":"fotos"}</strong>. Escriu el teu dorsal per veure només les teves.</p>`;
+  $("found").innerHTML=f;
+  $("grid").innerHTML = list.length ? list.map(p=>`
+    <div class="cell ${c.has(p.id)?"on":""}">
+      <button class="ph" data-open="${p.id}" aria-label="Amplia la foto ${p.id}"><img loading="lazy" alt="Foto ${p.id}, ${p.point}" src="${drawPhoto(state.ev,p,400,500)}"><span class="meta">${p.dorsals.length?"#"+p.dorsals.join(" · #")+" · ":""}${p.point}</span></button>
+      <button class="sel" data-sel="${p.id}" aria-pressed="${c.has(p.id)}" aria-label="${c.has(p.id)?"Treu":"Afegeix"} la foto ${p.id}">${c.has(p.id)?"✓":"+"}</button>
+    </div>`).join("") : `<div class="empty">No hi ha fotos amb aquests filtres.</div>`;
+  const ab=$("allBtn"); if(ab) ab.onclick=()=>takeAll();
+}
+const evWord=()=> state.ev.sport==="foot"?"número":"dorsal";
+const P=CONFIG.prices;
+const BUY=["buy","full","family","presale"], QUOTE=["buy","full","family","equip"];
+let ptype="buy", upIdx=0;
+function launchLeft(ev=state.ev){ if(!ev.published) return 0; const end=new Date(ev.published).getTime()+CONFIG.launchHours*3600e3; return Math.max(0,end-Date.now()); }
+function fullPrice(ev=state.ev){ return launchLeft(ev)>0? P.fullLaunch : P.full; }
+function total(){ const n=cart().size; return ptype==="buy"? n*P.single : ptype==="full"? fullPrice() : ptype==="family"? P.family : ptype==="presale"? P.presale : null; }
+function fmtLeft(ms){ const m=Math.floor(ms/60000), d=Math.floor(m/1440), h=Math.floor(m%1440/60), mi=m%60; return (d?d+" d ":"")+String(h).padStart(2,"0")+" h "+String(mi).padStart(2,"0")+" min"; }
+function renderLaunch(){ const l=launchLeft(), el=$("launch");
+  el.classList.toggle("show",l>0);
+  if(l>0) el.innerHTML=`🔥 <span>Preu de llançament: <b>Tota la teva cursa a ${P.fullLaunch} €</b> (després ${P.full} €)</span><span class="cd">Acaba en ${fmtLeft(l)}</span>`;
+}
+function renderPacks(){
+  const l=launchLeft(), n=state.q? state.ev.photos.filter(p=>p.dorsals.includes(+state.q)).length : 0;
+  const anchor = n>1? `<span class="anchor">Comprades soltes, les teves ${n} fotos serien ${n*P.single} €</span>` : "";
+  $("packs").innerHTML=`
+    <div class="packc"><span class="q">Una o les que vulguis</span><b>Fotos soltes</b><div class="price">${P.single} € <small>/ foto</small></div><p>Tria-les a la galeria i paga només les que t'agradin.</p><button data-pack="buy">Tria fotos</button></div>
+    <div class="packc best"><span class="badge">${l>0?"Preu de llançament":"El més triat"}</span><span class="q">Tot el teu esdeveniment</span><b>Tota la teva cursa</b>
+      <div class="price">${fullPrice()} €${l>0?`<s>${P.full} €</s>`:""}</div>
+      <ul class="stack"><li>Totes les teves fotos en alta qualitat, sense marques</li><li>Versió per a historias d'Instagram de cada foto</li><li>Pòster digital amb el nom de la cursa i el teu ${evWord()}</li><li>Garantia: si no t'agraden, et tornem els diners</li></ul>
+      ${anchor}<button data-pack="full">Vull tota la meva cursa</button></div>
+    <div class="packc"><span class="q">Fins a 4 ${evWord()}s</span><b>Pack família</b><div class="price">${P.family} €</div><p>Totes les fotos de tota la família en una sola compra. Ideal per a curses infantils.</p><button data-pack="family">Vull el pack família</button></div>
+    <div class="packc"><span class="q">Pressupost a mida</span><b>Equips i clubs</b><p>Les fotos de tot l'equip o la plantilla, per a les xarxes del club i per a les famílies.</p><button data-pack="equip">Demana pressupost</button></div>`;
+  $("optBuy").innerHTML=`Les fotos que he triat · ${cart().size*P.single} €<small id="selInfo"></small>`;
+  $("optFull").innerHTML=`Tota la teva cursa · ${fullPrice()} €<small>Totes les fotos del teu ${evWord()}, versió per a historias i pòster digital</small>`;
+  $("optFam").innerHTML=`Pack família · ${P.family} €<small>Totes les fotos de fins a 4 ${evWord()}s</small>`;
+}
+const MODES={
+  buy:{t:"La teva comanda"}, full:{t:"La teva comanda", l:`Dorsal o número`, ph:"P. ex. 127"}, family:{t:"La teva comanda", l:"Dorsals o números de la família", ph:"P. ex. 127, 128, 340"},
+  equip:{t:"Pressupost per a equips i clubs", l:"Quin equip i per a què les voleu", ph:"P. ex. Juvenil A, fotos per a les famílies"},
+  presale:{t:"Preventa", l:"Dorsal (si ja el saps)", ph:"P. ex. 127"},
+  notify:{t:"Avisa'm quan surtin les fotos", l:"Dorsal (si ja el saps)", ph:"P. ex. 127"},
+  event:{t:"Cobertura del teu esdeveniment", l:"Explica'ns l'esdeveniment", ph:"Data, lloc, esport i nombre aproximat de participants"},
+  free:{t:"Foto gratis per a Instagram", l:"El teu usuari d'Instagram", ph:"@el_teu_usuari"},
+  remove:{t:"Retirar una foto", l:"Quina foto i per què (opcional)", ph:"P. ex. la foto #0004, surto jo o el meu fill"}
+};
+function setType(t){ ptype=t; const m=MODES[t]||MODES.buy;
+  document.querySelectorAll('input[name="ptype"]').forEach(r=>r.checked=r.value===t);
+  $("opts").style.display=QUOTE.includes(t)?"":"none"; $("dTitle").textContent=m.t;
+  $("rmsgL").textContent=m.l||"Comentari (opcional)"; $("rmsg").placeholder=m.ph||"Comentari";
+  if(t==="full" && !$("rmsg").value){ const dp=state.dorsalPack[state.ev.id]; if(dp||state.q) $("rmsg").value=String(dp?dp.d:state.q); }
+  $("emailL").textContent = (BUY.includes(t)||t==="notify")? "Correu on t'enviarem les fotos" : "Correu o telèfon";
+  $("err").textContent=""; renderPackInfo(); updateSend(); }
+function reference(){
+  const ev=state.ev, dp=state.dorsalPack[ev.id];
+  if(ptype==="full") return `${ev.code}_D${($("rmsg").value.trim()||(dp&&dp.d)||state.q||"").toString().replace(/\D+/g,"")}_TOTA`;
+  if(ptype==="family") return `${ev.code}_FAM_${$("rmsg").value.replace(/\D+/g,"-").replace(/^-|-$/g,"")}`.slice(0,200);
+  if(ptype==="presale"||ptype==="notify") return `${UPCOMING[upIdx].id.toUpperCase()}_D${$("rmsg").value.replace(/\D+/g,"")}`;
+  const ids=[...cart()].sort().join("-");
+  return ids? `${ev.code}_${ids}`.slice(0,200) : ev.code;
+}
+function renderCart(){
+  const n=cart().size;
+  $("bar").classList.toggle("show",n>0);
+  const better = n*P.single>fullPrice();
+  $("barCount").textContent=`${n} ${n===1?"foto":"fotos"} · ${n*P.single} €`;
+  $("barPack").textContent= better? `· Amb "Tota la teva cursa" només ${fullPrice()} €` : `· ${state.ev.name}`;
+  $("thumbs").innerHTML=[...cart()].map(id=>{const p=state.ev.photos.find(x=>x.id===id); return `<img alt="Foto ${id}" src="${drawPhoto(state.ev,p,400,500)}">`;}).join("");
+  renderPacks();
+  const si=$("selInfo"); if(si) si.textContent = n? [...cart()].sort().map(i=>"#"+i).join(", ") : "Primer tria les fotos a la galeria";
+  renderPackInfo(); updateSend();
+}
+function renderPackInfo(){
+  const n=cart().size, t=total(); let h;
+  const up=UPCOMING[upIdx]||{};
+  if(ptype==="event") h=`<p class="hint">Et responem en menys de 24 h amb una proposta per al teu esdeveniment.</p>`;
+  else if(ptype==="free") h=`<p class="hint">${n===1?"Has triat 1 foto. ":"Tria <strong>una sola foto</strong> a la galeria. "}Penja-la mencionant <strong>@${CONFIG.instagram}</strong> i t'enviem la versió per a historias, sense marques.</p>`;
+  else if(ptype==="remove") h=`<p class="hint">${n?`Has marcat ${n} ${n===1?"foto":"fotos"} de ${state.ev.name}. `:"Marca a la galeria la foto que vols que retirem, o descriu-la a sota. "}La retirarem com més aviat millor.</p>`;
+  else if(ptype==="notify") h=`<div class="row"><span>${up.name||""}</span></div><p class="hint">T'escrivim així que les fotos estiguin penjades, amb el preu de llançament.</p>`;
+  else if(ptype==="presale") h=`<div class="row"><span>Preventa · Tota la teva cursa · ${up.name||""}</span><b>${P.presale} €</b></div><p class="hint">Reserva ara a preu de preventa (després ${P.full} €). Rebràs totes les teves fotos, la versió per a historias i el pòster digital.</p>`;
+  else if(ptype==="equip") h=`<div class="row"><span>${state.ev.name}</span></div><p class="hint">Et responem amb una proposta per a l'equip en menys de 24 h.</p>`;
+  else {
+    const better = ptype==="buy" && n*P.single>fullPrice();
+    h=`<div class="row"><span>${state.ev.name}</span><b>${t} €</b></div><p class="hint ${better?"up":""}">${ptype==="buy"? (n? (better?`Amb "Tota la teva cursa" les tens totes per ${fullPrice()} € i estalvies ${n*P.single-fullPrice()} €.`:`${n} ${n===1?"foto":"fotos"} × ${P.single} €.`) : "Tria a la galeria les fotos que vulguis.") : ptype==="full"? (launchLeft()>0?`Preu de llançament (després ${P.full} €). Acaba en ${fmtLeft(launchLeft())}.`:"Totes les teves fotos, versió per a historias i pòster digital.") : "Escriu a sota els dorsals de la família."}</p>`;
+  }
+  $("pack").innerHTML=h;
+  $("thumbs").style.display = ["buy","free","remove"].includes(ptype)?"":"none";
+}
+const label=()=>({buy:`Fotos soltes (${cart().size})`,full:"Tota la teva cursa",family:"Pack família",presale:"Preventa · Tota la teva cursa"})[ptype];
+function buildMsg(){
+  const n=cart().size, ids=[...cart()].sort().map(i=>"#"+i).join(", ");
+  const nm=$("rname").value.trim(), ct=$("email").value.trim(), m=$("rmsg").value.trim(), up=UPCOMING[upIdx]||{};
+  let lines;
+  if(ptype==="event") lines=["Hola unsolclik! Voldria pressupost per a la cobertura fotogràfica d'un esdeveniment.","",`Esdeveniment: ${m}`];
+  else if(ptype==="free") lines=["Hola unsolclik! Voldria la meva foto gratis per a Instagram.","",`Esdeveniment: ${state.ev.name}`,`Foto: ${ids}`,`Instagram: ${m}`];
+  else if(ptype==="remove") lines=["Hola unsolclik! Voldria que retiréssiu una foto de la pàgina.","",`Esdeveniment: ${state.ev.name}`, ...(n?[`Fotos: ${ids}`]:[]), ...(m?[`Detalls: ${m}`]:[])];
+  else if(ptype==="notify") lines=["Hola unsolclik! Avisa'm quan surtin les fotos.","",`Cursa: ${up.name}`, ...(m?[`Dorsal: ${m}`]:[])];
+  else if(ptype==="equip") lines=["Hola unsolclik! Voldria pressupost per a les fotos d'un equip o club.","",`Esdeveniment: ${state.ev.name}`, ...(state.point?[`Categoria: ${state.point}`]:[]), ...(m?[`Detalls: ${m}`]:[])];
+  else {
+    lines=["Hola unsolclik! Vull fer aquesta comanda:","",`Pack: ${label()}`,`Total: ${total()} €`, `Esdeveniment: ${ptype==="presale"?up.name:state.ev.name}`];
+    if(ptype==="buy") lines.push(`Fotos: ${ids}`);
+    if(ptype==="full") lines.push(`${evWord()[0].toUpperCase()+evWord().slice(1)}: ${m}`);
+    if(ptype==="family") lines.push(`Dorsals: ${m}`);
+    if(ptype==="presale" && m) lines.push(`Dorsal: ${m}`);
+  }
+  lines.push(`Nom: ${nm}`, `Contacte: ${ct}`);
+  if(ptype!=="event") lines.push(`Ref: ${reference()}`);
+  return lines.join("\n");
+}
+function validReq(){
+  const name=$("rname").value.trim(), c=$("email").value.trim(), m=$("rmsg").value.trim();
+  const isMail=/^\S+@\S+\.\S+$/.test(c);
+  if(!name) return "Escriu el teu nom.";
+  if(BUY.includes(ptype)||ptype==="notify"){ if(!isMail) return "Escriu el teu correu: hi enviarem les fotos."; }
+  else if(!(isMail || c.replace(/\D/g,"").length>=9)) return "Escriu un correu o un telèfon perquè et puguem respondre.";
+  if(ptype==="buy" && !cart().size) return "Tria alguna foto a la galeria, o escull un altre pack.";
+  if(ptype==="full" && !/\d/.test(m)) return `Escriu el teu ${evWord()}.`;
+  if(ptype==="family" && !/\d/.test(m)) return "Escriu els dorsals o números de la família.";
+  if(ptype==="event" && m.length<5) return "Explica'ns breument l'esdeveniment: data, lloc i esport.";
+  if(ptype==="free" && cart().size!==1) return "Tria una sola foto a la galeria.";
+  if(ptype==="free" && !m) return "Escriu el teu usuari d'Instagram.";
+  if(ptype==="remove" && !cart().size && !m) return "Marca la foto a la galeria o descriu-la al comentari.";
+  return "";
+}
+function stripeLink(){ if(!BUY.includes(ptype)) return ""; const k= ptype==="full"&&launchLeft()>0? "fullLaunch" : ptype; return CONFIG.stripe[k]||""; }
+function updateSend(){
+  const msg=buildMsg(), t=total(), sl=stripeLink();
+  const subj= BUY.includes(ptype)? `Comanda · ${label()} · ${t} €` : MODES[ptype].t+` · ${state.ev.name}`;
+  const wa=`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
+  if(sl){ $("sendWa").href=`${sl}?client_reference_id=${encodeURIComponent(reference())}&prefilled_email=${encodeURIComponent($("email").value.trim())}`; $("sendWa").textContent=`Pagar ${t} € amb targeta`; }
+  else { $("sendWa").href=wa; $("sendWa").textContent= BUY.includes(ptype)? `Fes la comanda · ${t} €` : "Envia per WhatsApp"; }
+  $("sendMail").href=`mailto:${CONFIG.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(msg)}`;
+  $("sendMail").textContent = sl? "Prefereixo Bizum o transferència" : "Envia per correu";
+  if(sl) $("sendMail").href=wa;
+  $("contactTxt").textContent = BUY.includes(ptype)
+    ? (sl? "Pagament segur amb Stripe. Rebràs les fotos al teu correu en menys de 24 h. Si no t'agraden, et tornem els diners." : "Et confirmem la comanda per WhatsApp amb l'enllaç de pagament (targeta o Bizum) i reps les fotos al teu correu en menys de 24 h. Si no t'agraden, et tornem els diners.")
+    : `També ens pots escriure a ${CONFIG.email} o al WhatsApp +${CONFIG.whatsapp}. Responem en menys de 24 h.`;
+}
+const demo=()=> CONFIG.whatsapp.includes("X") || CONFIG.email.includes("X");
+function renderAll(){ renderEvents(); renderHead(); renderGrid(); renderCart(); }
+/* ---------- carrusel de fotos destacades (totes les reals, de tots els esdeveniments) ---------- */
+const featured=()=>{ const out=[]; const lists=EVENTS.map(e=>e.photos.filter(p=>p.file).map(p=>({e,p}))); const m=Math.max(...lists.map(l=>l.length)); for(let i=0;i<m;i++) lists.forEach(l=>l[i]&&out.push(l[i])); return out; };
+function renderCarousel(){
+  const f=featured();
+  $("track").innerHTML=f.map(({e,p},i)=>`<button class="slide" data-i="${i}" aria-label="${e.name}${p.dorsals.length?", número "+p.dorsals[0]:""}, ${p.point}. Obre la foto"><img alt="" src="${drawPhoto(e,p,720)}"><div class="cap"><b>${e.name}</b><span>${p.dorsals.length?(e.sport==="foot"?"Núm. ":"Dorsal ")+p.dorsals[0]+" · ":""}${p.point}</span></div></button>`).join("");
+  $("dots").innerHTML=f.map((_,i)=>`<button aria-label="Ves a la foto ${i+1}" data-d="${i}"></button>`).join("");
+  syncDots();
+}
+function slideW(){ const s=$("track").querySelector(".slide"); return s? s.getBoundingClientRect().width+12 : 300; }
+function curSlide(){ return Math.round($("track").scrollLeft/slideW()); }
+function goSlide(i){ const t=$("track"), n=t.children.length, max=t.scrollWidth-t.clientWidth; if(i<0) i=n-1; let x=i*slideW(); if(x>max+4){ x = i>=n ? 0 : max; if(i>=n) i=0; } t.scrollTo({left:x,behavior:reduce?"auto":"smooth"}); }
+function syncDots(){ const c=curSlide(), t=$("track"), atEnd=t.scrollLeft>=t.scrollWidth-t.clientWidth-4; [...$("dots").children].forEach((d,i)=>d.setAttribute("aria-current",String(atEnd? i===t.children.length-1 : i===c))); }
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let auto=null, paused=false;
+function next(){ const t=$("track"); const atEnd=t.scrollLeft>=t.scrollWidth-t.clientWidth-4; atEnd? t.scrollTo({left:0,behavior:reduce?"auto":"smooth"}) : goSlide(curSlide()+1); }
+function startAuto(){ if(reduce) return; clearInterval(auto); auto=setInterval(()=>{ if(!paused && !document.hidden) next(); },3800); }
+$("next").onclick=()=>{ next(); startAuto(); };
+$("prev").onclick=()=>{ goSlide(curSlide()-1); startAuto(); };
+$("dots").onclick=e=>{ const d=e.target.closest("[data-d]"); if(d){ goSlide(+d.dataset.d); startAuto(); } };
+$("track").addEventListener("scroll",()=>{ clearTimeout(syncDots.t); syncDots.t=setTimeout(syncDots,80); },{passive:true});
+const car=document.querySelector(".car");
+["mouseenter","touchstart","focusin"].forEach(ev=>car.addEventListener(ev,()=>paused=true,{passive:true}));
+["mouseleave","touchend","focusout"].forEach(ev=>car.addEventListener(ev,()=>{ setTimeout(()=>paused=false,ev==="touchend"?4000:0); },{passive:true}));
+$("track").onclick=e=>{
+  const b=e.target.closest(".slide"); if(!b) return; const {e:ev,p}=featured()[+b.dataset.i];
+  state.ev=ev; state.point=p.dorsals.length&&ev.sport!=="foot"?null:p.point; state.q=p.dorsals.length?String(p.dorsals[0]):""; $("dorsal").value=state.q; renderAll();
+  document.querySelector(".tools").scrollIntoView({behavior:reduce?"auto":"smooth"}); openLb(p.id);
+};
+
+/* ---------- portada: fos encadenat entre les fotos en blanc i negre ---------- */
+(()=>{ const bgs=[...document.querySelectorAll(".cover .bg")]; let i=0;
+  if(reduce || bgs.length<2) return;
+  setInterval(()=>{ if(document.hidden) return; bgs[i].classList.remove("on"); i=(i+1)%bgs.length; bgs[i].classList.add("on"); },5500);
+})();
+
+document.addEventListener("contextmenu",e=>{ if(e.target.tagName==="IMG") e.preventDefault(); });
+document.addEventListener("dragstart",e=>{ if(e.target.tagName==="IMG") e.preventDefault(); });
+
+/* ---------- accions ---------- */
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("show"),2600); }
+function toggle(id){
+  const c=cart();
+  if(c.has(id)){ c.delete(id); const dp=state.dorsalPack[state.ev.id]; if(dp) delete state.dorsalPack[state.ev.id]; }
+  else {
+    c.add(id);
+  }
+  renderGrid(); renderCart(); syncLb();
+}
+function takeAll(){
+  if(state.ev.sport==="foot" && !state.point){ toast("Tria primer la teva categoria: Amateur femení o Juvenil A."); return; }
+  const d=+state.q; state.dorsalPack[state.ev.id]={d,point:state.point}; $("rmsg").value=String(d);
+  setType("full"); renderCart(); openCart();
+}
+function openCart(){ $("drawer").classList.add("show"); $("scrim").classList.add("show"); }
+function closeCart(){ $("drawer").classList.remove("show"); $("scrim").classList.remove("show"); }
+
+let lbId=null;
+function openLb(id){ lbId=id; const p=state.ev.photos.find(x=>x.id===id); $("lbImg").src=drawPhoto(state.ev,p,960,1200); $("lbImg").alt=`Foto ${id}`; $("lbCap").textContent=`Foto ${id}${p.dorsals.length?" · "+(state.ev.sport==="foot"?"número ":"dorsal ")+p.dorsals.join(" i "):""} · ${p.point}${p.hour?" · "+p.hour:""}`; const l=shown(), k=l.findIndex(x=>x.id===id); $("lbCount").textContent= l.length>1&&k>=0? `${k+1} de ${l.length} · llisca per veure'n més`:""; syncLb(); $("lb").classList.add("show"); }
+function syncLb(){ if(lbId) $("lbSel").textContent=cart().has(lbId)?"✓ Triada · treure":"Tria aquesta foto"; }
+function closeLb(){ $("lb").classList.remove("show"); lbId=null; }
+function stepLb(d){ const l=shown(); if(!l.length||!lbId) return; let i=l.findIndex(p=>p.id===lbId); i=(i+d+l.length)%l.length; openLb(l[i].id); }
+$("lbPrev").onclick=e=>{ e.stopPropagation(); stepLb(-1); }; $("lbNext").onclick=e=>{ e.stopPropagation(); stepLb(1); };
+let tx=null; $("lb").addEventListener("touchstart",e=>{ tx=e.touches[0].clientX; },{passive:true});
+$("lb").addEventListener("touchend",e=>{ if(tx===null) return; const dx=e.changedTouches[0].clientX-tx; tx=null; if(Math.abs(dx)>45) stepLb(dx<0?1:-1); },{passive:true});
+
+$("events").onclick=e=>{ const b=e.target.closest(".ev"); if(!b) return; state.ev=EVENTS.find(x=>x.id===b.dataset.id); state.point=null; state.q=""; $("dorsal").value=""; renderAll(); };
+$("folders").onclick=e=>{ const b=e.target.closest("[data-folder]"); if(!b) return; state.point= state.point===b.dataset.folder? null : b.dataset.folder; renderHead(); renderGrid(); document.querySelector(".tools").scrollIntoView({behavior:reduce?"auto":"smooth"}); };
+$("chips").onclick=e=>{ const b=e.target.closest(".chip"); if(!b) return; state.point=b.dataset.p||null; renderHead(); renderGrid(); };
+$("dorsal").oninput=e=>{ e.target.value=e.target.value.replace(/\D/g,"").slice(0,5); state.q=e.target.value; renderGrid(); };
+$("clear").onclick=()=>{ $("dorsal").value=""; state.q=""; renderGrid(); $("dorsal").focus(); };
+$("grid").onclick=e=>{ const s=e.target.closest("[data-sel]"); if(s) return toggle(s.dataset.sel); const o=e.target.closest("[data-open]"); if(o) openLb(o.dataset.open); };
+$("lbSel").onclick=()=>toggle(lbId);
+$("lbClose").onclick=closeLb;
+$("lb").onclick=e=>{ if(e.target.id==="lb") closeLb(); };
+$("openCart").onclick=()=>{ setType("buy"); renderCart(); openCart(); }; $("closeCart").onclick=closeCart; $("scrim").onclick=closeCart;
+["rname","email","rmsg"].forEach(id=>$(id).addEventListener("input",()=>{ $("err").textContent=""; updateSend(); }));
+document.querySelectorAll('input[name="ptype"]').forEach(r=>r.onchange=()=>setType(r.value));
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-pack]"); if(!b) return;
+  if(b.dataset.up!==undefined) upIdx=+b.dataset.up;
+  let t=b.dataset.pack || (cart().size? "buy" : (state.q? "full" : "buy"));
+  if(t==="buy" && !cart().size && b.closest(".packc")){ document.querySelector(".tools").scrollIntoView({behavior:reduce?"auto":"smooth"}); toast("Busca el teu dorsal i toca + a les fotos que vulguis."); return; }
+  $("rmsg").value=""; setType(t); renderCart(); openCart(); });
+["sendWa","sendMail"].forEach(id=>$(id).onclick=e=>{
+  const er=validReq(); if(er){ e.preventDefault(); $("err").textContent=er; return; }
+  if(demo()){ e.preventDefault(); $("modalRef").textContent=buildMsg(); $("modal").classList.add("show"); }
+});
+$("modalOk").onclick=()=>$("modal").classList.remove("show");
+document.addEventListener("keydown",e=>{ if(lbId&&e.key==="ArrowRight") stepLb(1); if(lbId&&e.key==="ArrowLeft") stepLb(-1); if(e.key==="Escape"){ closeLb(); closeCart(); $("modal").classList.remove("show"); $("qrModal").classList.remove("show"); } });
+
+/* estat inicial d'exemple: un dorsal cercat i dues fotos triades, perquè es vegi el flux complet */
+function renderStatic(){
+  document.querySelectorAll("[data-ig]").forEach(el=>el.textContent="@"+CONFIG.instagram);
+  $("igLink").href=`https://www.instagram.com/${CONFIG.instagram}/`;
+  if(CONFIG.avatar){ $("avatar").style.backgroundImage=`url(${CONFIG.avatar})`; $("avatar").textContent=""; }
+  $("upcoming").innerHTML=UPCOMING.map((u,i)=>`<div class="nextc"><div class="d">${u.when}</div><div><b>${u.name}</b><p>${u.note}</p></div><div class="acts"><button class="pri" data-pack="presale" data-up="${i}">Preventa · ${P.presale} €</button><button data-pack="notify" data-up="${i}">Avisa'm quan surtin</button></div></div>`).join("") || `<p class="lead">Aviat anunciarem les properes curses.</p>`;
+  renderStory();
+  const f=featured(); $("orgPics").innerHTML=[f[0],f[1],f[2]].filter(Boolean).map(({e,p})=>`<img alt="${e.name}" src="${drawPhoto(e,p,360)}">`).join("");
+}
+function renderStory(){ // exemple del marc per a historias que rep qui comparteix
+  const ev=EVENTS.find(e=>e.id==="ctc26")||EVENTS[0], p=ev.photos.find(x=>x.file), im=p&&imgs[p.file]; if(!im) return;
+  const c=document.createElement("canvas"); c.width=360; c.height=640; const g=c.getContext("2d");
+  const s=Math.max(c.width/im.naturalWidth,c.height/im.naturalHeight), w=im.naturalWidth*s, h=im.naturalHeight*s;
+  g.imageSmoothingQuality="high"; g.drawImage(im,(c.width-w)/2,(c.height-h)/2,w,h);
+  const gr=g.createLinearGradient(0,c.height*.62,0,c.height); gr.addColorStop(0,"rgba(0,0,0,0)"); gr.addColorStop(1,"rgba(0,0,0,.85)"); g.fillStyle=gr; g.fillRect(0,0,c.width,c.height);
+  g.fillStyle="#fff"; g.textAlign="center"; g.font="800 22px Archivo, Arial"; g.fillText(ev.name.toUpperCase(),c.width/2,c.height-58);
+  g.fillStyle="#ff5a1f"; g.font="700 16px Figtree, Arial"; g.fillText("foto @"+CONFIG.instagram,c.width/2,c.height-30);
+  $("storyPrev").src=c.toDataURL("image/jpeg",.85);
+}
+function pickHash(){ if(location.hash==="#jb"){ state.ev=EVENTS.find(x=>x.id==="fut"); state.point="Juvenil B"; state.q=""; $("dorsal").value=""; renderAll(); return; } const e=EVENTS.find(x=>x.id===location.hash.slice(1)); if(e && e!==state.ev){ state.ev=e; state.point=null; state.q=""; $("dorsal").value=""; renderAll(); } }
+window.addEventListener("hashchange",pickHash); pickHash();
+function showQR(ev){ const url=`${CONFIG.siteUrl}#${ev.id}`; $("qrTitle").textContent="QR · "+ev.name; $("qrUrl").textContent=url; $("qr").innerHTML="";
+  if(window.QRCode) new QRCode($("qr"),{text:url,width:220,height:220,correctLevel:QRCode.CorrectLevel.M}); else $("qr").textContent="No s'ha pogut generar el QR.";
+  $("qrEvents").innerHTML=EVENTS.map(e=>`<button class="chip" data-qr="${e.id}" aria-pressed="${e===ev}">${e.name}</button>`).join(""); $("qrModal").classList.add("show"); }
+$("qrBtn").onclick=()=>showQR(state.ev); $("qrOk").onclick=()=>$("qrModal").classList.remove("show");
+$("qrEvents").onclick=e=>{ const b=e.target.closest("[data-qr]"); if(b) showQR(EVENTS.find(x=>x.id===b.dataset.qr)); };
+setInterval(()=>{ renderLaunch(); renderPacks(); if($("drawer").classList.contains("show")) renderPackInfo(); },30000);
+renderAll(); renderCarousel(); renderStatic(); startAuto();
+Promise.all([loadImgs(), loadLogo(), document.fonts&&document.fonts.load?document.fonts.load("900 20px Archivo").catch(()=>{}):null]).finally(()=>{ for(const k in cache) delete cache[k]; renderAll(); renderCarousel(); renderStatic(); });
+</script>
+</body>
+</html>
