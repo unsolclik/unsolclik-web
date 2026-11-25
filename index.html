@@ -295,7 +295,7 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
         <h2>Sessió de futbol privada</h2>
         <p class="lead" style="margin:0">La seva temporada, en 20 fotos. El regal que guardaran tota la vida.</p>
         <ul>
-          <li>Sessió de 45 minuts al seu camp</li>
+          <li>Sessió de fotos durant un partit</li>
           <li>Galeria privada amb unes 40 fotos per triar-ne 20</li>
           <li>Editades a mà i entregades en digital, en alta resolució</li>
           <li>Extres a 2 € la foto, o totes per +20 €</li>
@@ -890,10 +890,10 @@ Promise.all([loadImgs(), loadLogo(), document.fonts&&document.fonts.load?documen
 <script>
 (function(){
   var bf = new Date() < new Date("2026-11-30T00:00:00+01:00");
-  document.getElementById("sesPrice").innerHTML = bf ? "<s>60 €</s>50 €<small>Black Friday · fins al 29/11</small>" : "60 €<small>20 fotos editades</small>";
+  document.getElementById("sesPrice").innerHTML = bf ? "<s>60 €</s>49 €<small>Black Friday · fins al 29/11</small>" : "60 €<small>20 fotos editades</small>";
   if(bf) document.getElementById("sesBadge").textContent = "Pack de Nadal · Black Friday";
   var end = new Date("2026-11-30T00:00:00+01:00"), cd = document.getElementById("promoCd");
-  document.getElementById("promoTxt").innerHTML = bf ? "Sessió de futbol privada · <s>60 €</s> <b style='text-transform:none'>50 €</b> per Black Friday" : "Sessió de futbol privada · 20 fotos editades · 60 €";
+  document.getElementById("promoTxt").innerHTML = bf ? "Sessió de futbol privada · <s>60 €</s> <b style='text-transform:none'>49 €</b> per Black Friday" : "Sessió de futbol privada · 20 fotos editades · 60 €";
   function tick(){
     var ms = end - new Date();
     if(ms <= 0){ cd.hidden = true; return; }
