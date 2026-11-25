@@ -1,5 +1,5 @@
 // Galeries privades per triar fotos. Cada família té un codi difícil d'endevinar.
-// Enllaç per enviar: https://unsolclik.github.io/unsolclik-web/tria.html#CODI
+// Enllaç per enviar: https://unsolclik.cat/tria.html#CODI
 // Per afegir-ne una: python3 tools/nova-familia.py "Nom" carpeta-amb-fotos
 window.TRIA_CONFIG = {
   whatsapp: "34639234492",
