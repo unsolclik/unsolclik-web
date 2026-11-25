@@ -892,8 +892,8 @@ Promise.all([loadImgs(), loadLogo(), document.fonts&&document.fonts.load?documen
 (function(){
   // Preu fix 49 €; els 5 primers que reservin, 40 €. Posa early=false quan s'acabin les 5 places.
   var early = true;
-  document.getElementById("sesPrice").innerHTML = "49 €<small>" + (early ? "<b style='color:var(--accent)'>Els 5 primers que reservin: 40 €</b>" : "20 fotos editades") + "</small>";
-  document.getElementById("promoTxt").innerHTML = "Regala-li el seu millor partit · 49&nbsp;€" + (early ? " · <b style='text-transform:none'>els 5 primers, 40&nbsp;€</b>" : "");
+  document.getElementById("sesPrice").innerHTML = "49 €<small>" + (early ? "<b style='color:var(--accent)'>Les 5 primeres reserves a 40 €</b>" : "20 fotos editades") + "</small>";
+  document.getElementById("promoTxt").innerHTML = "Regala-li el seu millor partit · 49&nbsp;€" + (early ? " · <b style='text-transform:none'>les 5 primeres reserves a 40&nbsp;€</b>" : "");
   var cd = document.getElementById("promoCd");
   if(early){ cd.textContent = "Places limitades"; cd.hidden = false; }
   document.getElementById("sesCta").href = "https://wa.me/34639234492?text=" + encodeURIComponent("Hola Sergi! NADAL. M'interessa el Pack de Nadal de fotos de futbol.");
