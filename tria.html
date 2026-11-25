@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Tria les teves fotos · unsolclik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3ede2;--surface:#fbf8f2;--ink:#1c1915;--muted:#6b6358;--line:#e2d8c8;--accent:#ff5a1f;--ok:#1f8a4c;
+  --display:"Archivo","Arial Black",system-ui,sans-serif;--body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;padding-bottom:150px}
+button{font:inherit;color:inherit;cursor:pointer}
+img{-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 16px}
+.logo{width:170px;aspect-ratio:1499/251;background:linear-gradient(90deg,var(--ink) 58.8%,var(--accent) 58.8%);-webkit-mask:url(marca/logo-blanc.png) center/contain no-repeat;mask:url(marca/logo-blanc.png) center/contain no-repeat}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(28px,5vw,42px);line-height:1.02;letter-spacing:-.03em;margin:22px 0 8px}
+.lead{color:var(--muted);margin:0 0 14px;max-width:640px}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px;padding:0;list-style:none}
+.steps li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font-size:14px}
+.steps b{color:var(--accent)}
+.prices{font-size:14px;color:var(--muted);margin:8px 0 18px}
+.prices b{color:var(--ink)}
+.filters{display:flex;gap:8px;margin:0 0 14px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:14px}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.tile{position:relative;border-radius:10px;overflow:hidden;background:#ddd;aspect-ratio:4/5;border:3px solid transparent;transition:border-color .15s}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile.sel{border-color:var(--accent)}
+.tile .num{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;border-radius:6px;padding:1px 7px}
+.tile .pick{position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.35);color:#fff;font-weight:700;display:grid;place-items:center;font-size:18px}
+.tile.sel .pick{background:var(--accent);border-color:var(--accent)}
+.tile .zoom{position:absolute;inset:0;background:none;border:0;padding:0}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:10}
+.bar .in{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.count{font-family:var(--display);font-weight:800;font-size:22px}
+.count small{font-family:var(--body);font-weight:400;font-size:14px;opacity:.75}
+.meter{flex:1 1 140px;height:6px;border-radius:9px;background:rgba(255,255,255,.18);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.extra{font-size:14px;opacity:.9;flex-basis:100%}
+.allopt{display:flex;align-items:center;gap:8px;font-size:14px}
+.allopt input{width:20px;height:20px;accent-color:var(--accent)}
+.send{margin-left:auto;background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 22px;font-family:var(--display);font-weight:800;font-size:16px}
+.send:disabled{opacity:.4;cursor:not-allowed}
+.view{position:fixed;inset:0;background:rgba(12,12,12,.96);z-index:20;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.view.on{display:flex}
+.view img{max-width:100%;max-height:calc(100vh - 150px);object-fit:contain;border-radius:6px}
+.view .ctl{display:flex;gap:10px;margin-top:14px;align-items:center;color:#fff}
+.view button{border:0;border-radius:999px;padding:10px 18px;background:#2a2725;color:#fff}
+.view .vsel{background:var(--accent);font-weight:700}
+.view .vsel.done{background:var(--ok)}
+.note{font-size:13px;color:var(--muted);margin-top:26px}
+.empty{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px;margin-top:20px}
+.empty a{color:var(--accent);font-weight:600}
+</style>
+</head>
+<body oncontextmenu="return false">
+<div class="wrap">
+  <a href="./" aria-label="unsolclik"><div class="logo"></div></a>
+  <div id="app"></div>
+</div>
+
+<div class="bar" id="bar" hidden>
+  <div class="in">
+    <div class="count" id="count">0 / 20 <small>triades</small></div>
+    <div class="meter"><i id="meter"></i></div>
+    <label class="allopt"><input type="checkbox" id="all"><span>Les vull totes (+<span id="allp">20</span> €)</span></label>
+    <button class="send" id="send" disabled>Envia la selecció</button>
+    <div class="extra" id="extra"></div>
+  </div>
+</div>
+
+<div class="view" id="view" role="dialog" aria-modal="true">
+  <img id="vimg" alt="">
+  <div class="ctl">
+    <button id="vprev" aria-label="Anterior">‹</button>
+    <button class="vsel" id="vsel">Tria aquesta</button>
+    <button id="vnext" aria-label="Següent">›</button>
+    <button id="vclose">Tanca</button>
+  </div>
+</div>
+
+<script src="families.js"></script>
+<script>
+(function(){
+  var C = window.TRIA_CONFIG, F = window.FAMILIES || {};
+  var code = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim();
+  var fam = F[code];
+  var app = document.getElementById("app");
+
+  if(!fam){
+    app.innerHTML = '<h1>Galeria privada</h1><div class="empty">No trobem aquesta galeria. Revisa l\'enllaç que t\'he enviat o escriu-me per <a href="https://wa.me/'+C.whatsapp+'">WhatsApp</a>.</div>';
+    return;
+  }
+
+  var pick = fam.pick || C.pick, folder = fam.folder.replace(/\/$/, ""), photos = fam.photos;
+  var key = "tria-" + code, sel = [];
+  try{ sel = JSON.parse(localStorage.getItem(key) || "[]").filter(function(i){return i < photos.length}); }catch(e){}
+  var allOn = false, filter = "all", vi = 0;
+
+  var dl = fam.deadline ? new Date(fam.deadline + "T23:59:00") : null;
+  var dlTxt = dl ? dl.toLocaleDateString("ca-ES", {day:"numeric", month:"long"}) : (C.days + " dies");
+
+  app.innerHTML =
+    '<h1>Hola, ' + esc(fam.name) + '!</h1>' +
+    '<p class="lead">Aquí tens les fotos de la sessió. Tria les <b>' + pick + '</b> que més t\'agradin i te les entrego editades a mà, en alta resolució i sense marca d\'aigua.</p>' +
+    '<ul class="steps"><li><b>1</b> Toca el cercle per triar</li><li><b>2</b> Toca la foto per veure-la gran</li><li><b>3</b> Envia la selecció per WhatsApp</li></ul>' +
+    '<p class="prices">Tens fins al <b>' + dlTxt + '</b>. En vols més? <b>' + C.extra + ' €</b> per foto extra, o <b>+' + C.all + ' €</b> per quedar-te-les totes (' + photos.length + ').</p>' +
+    '<div class="filters"><button class="chip on" data-f="all">Totes (' + photos.length + ')</button><button class="chip" data-f="sel">Triades (<span id="nsel">0</span>)</button></div>' +
+    '<div class="grid" id="grid"></div>' +
+    '<p class="note">Les fotos d\'aquesta pàgina són una vista prèvia amb marca d\'aigua. L\'original s\'entrega sense marques. Si no m\'envies res abans de la data, faré jo la tria.</p>';
+
+  document.getElementById("allp").textContent = C.all;
+  document.getElementById("bar").hidden = false;
+
+  var grid = document.getElementById("grid");
+  photos.forEach(function(p, i){
+    var t = document.createElement("div");
+    t.className = "tile"; t.dataset.i = i;
+    t.innerHTML = '<img loading="lazy" src="' + folder + '/' + p + '" alt="Foto ' + (i+1) + '"><button class="zoom" aria-label="Veure la foto ' + (i+1) + ' gran"></button><span class="num">#' + pad(i+1) + '</span><button class="pick" aria-label="Tria la foto ' + (i+1) + '"></button>';
+    t.querySelector(".pick").onclick = function(e){ e.stopPropagation(); toggle(i); };
+    t.querySelector(".zoom").onclick = function(){ open(i); };
+    grid.appendChild(t);
+  });
+
+  app.querySelectorAll(".chip").forEach(function(b){
+    b.onclick = function(){
+      filter = b.dataset.f;
+      app.querySelectorAll(".chip").forEach(function(x){ x.classList.toggle("on", x === b); });
+      render();
+    };
+  });
+
+  document.getElementById("all").onchange = function(){ allOn = this.checked; render(); };
+  document.getElementById("send").onclick = send;
+
+  var view = document.getElementById("view");
+  document.getElementById("vclose").onclick = function(){ view.classList.remove("on"); };
+  document.getElementById("vprev").onclick = function(){ open((vi - 1 + photos.length) % photos.length); };
+  document.getElementById("vnext").onclick = function(){ open((vi + 1) % photos.length); };
+  document.getElementById("vsel").onclick = function(){ toggle(vi); updView(); };
+  document.addEventListener("keydown", function(e){
+    if(!view.classList.contains("on")) return;
+    if(e.key === "Escape") view.classList.remove("on");
+    if(e.key === "ArrowLeft") document.getElementById("vprev").click();
+    if(e.key === "ArrowRight") document.getElementById("vnext").click();
+  });
+  var sx = null;
+  view.addEventListener("touchstart", function(e){ sx = e.touches[0].clientX; }, {passive:true});
+  view.addEventListener("touchend", function(e){
+    if(sx === null) return; var dx = e.changedTouches[0].clientX - sx; sx = null;
+    if(Math.abs(dx) > 50) (dx < 0 ? document.getElementById("vnext") : document.getElementById("vprev")).click();
+  });
+
+  function toggle(i){
+    var k = sel.indexOf(i);
+    if(k >= 0) sel.splice(k, 1); else sel.push(i);
+    try{ localStorage.setItem(key, JSON.stringify(sel)); }catch(e){}
+    render();
+  }
+  function open(i){ vi = i; document.getElementById("vimg").src = folder + "/" + photos[i]; updView(); view.classList.add("on"); }
+  function updView(){
+    var b = document.getElementById("vsel"), on = sel.indexOf(vi) >= 0;
+    b.textContent = on ? "✓ Triada · #" + pad(vi+1) : "Tria aquesta · #" + pad(vi+1);
+    b.classList.toggle("done", on);
+  }
+
+  function cost(){
+    if(allOn) return {extra: Math.max(0, photos.length - pick), eur: C.all};
+    var ex = Math.max(0, sel.length - pick);
+    return {extra: ex, eur: ex * C.extra};
+  }
+
+  function render(){
+    var n = sel.length, c = cost();
+    grid.querySelectorAll(".tile").forEach(function(t){
+      var i = +t.dataset.i, k = sel.indexOf(i);
+      t.classList.toggle("sel", k >= 0);
+      t.querySelector(".pick").textContent = k >= 0 ? "✓" : "";
+      t.style.display = (filter === "sel" && k < 0) ? "none" : "";
+    });
+    document.getElementById("nsel").textContent = n;
+    document.getElementById("count").innerHTML = (allOn ? photos.length : n) + " / " + pick + " <small>" + (allOn ? "totes" : "triades") + "</small>";
+    document.getElementById("meter").style.width = Math.min(100, (allOn ? 100 : n / pick * 100)) + "%";
+    var ex = document.getElementById("extra");
+    if(allOn) ex.textContent = "Te les quedes totes (" + photos.length + "): +" + C.all + " € sobre el pack. Marca igualment les teves preferides si vols.";
+    else if(n < pick) ex.textContent = "Te'n falten " + (pick - n) + ".";
+    else if(n === pick) ex.textContent = "Perfecte! Ja pots enviar la selecció.";
+    else {
+      var t = (n - pick) + " extra × " + C.extra + " € = " + c.eur + " €.";
+      if(c.eur >= C.all) t += " Per " + C.all + " € te les quedes totes!";
+      ex.textContent = t;
+    }
+    document.getElementById("send").disabled = !(allOn || n >= pick);
+  }
+
+  function send(){
+    var c = cost(), nums = sel.slice().sort(function(a,b){return a-b}).map(function(i){ return "#" + pad(i+1); });
+    var msg = "Hola Sergi! Soc " + fam.name + " (galeria " + code + ").\n\n";
+    if(allOn){
+      msg += "Ens quedem TOTES les fotos de la galeria (" + photos.length + "): +" + C.all + " €.\n";
+      if(nums.length) msg += "Les nostres preferides: " + nums.join(", ") + "\n";
+    } else {
+      msg += "Les nostres " + nums.length + " fotos: " + nums.join(", ") + "\n";
+      if(c.extra) msg += "\nInclou " + c.extra + " extra (" + c.eur + " €).\n";
+    }
+    msg += "\nGràcies!";
+    location.href = "https://wa.me/" + C.whatsapp + "?text=" + encodeURIComponent(msg);
+  }
+
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+  render();
+  window.addEventListener("hashchange", function(){ location.reload(); });
+})();
+</script>
+</body>
+</html>
