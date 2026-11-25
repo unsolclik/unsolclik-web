@@ -247,6 +247,22 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
   .grid{grid-template-columns:repeat(2,1fr);gap:8px}
   .bar .wrap p span{display:none}
 }
+.ses{display:grid;grid-template-columns:1fr 1.1fr;gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px;align-items:center}
+.ses .pics{display:grid;grid-template-columns:1.3fr 1fr;grid-template-rows:1fr 1fr;gap:8px;aspect-ratio:5/4}
+.ses .pics img{width:100%;height:100%;object-fit:cover;border-radius:10px;display:block}
+.ses .pics img:first-child{grid-row:span 2}
+.ses .sbadge{display:inline-block;background:var(--accent);color:#fff;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:3px 9px}
+.ses h2{margin:10px 0 4px}
+.ses ul{margin:10px 0 14px;padding-left:18px}
+.ses .pr{font-family:var(--display);font-weight:900;font-size:40px;line-height:1}
+.ses .pr s{font-size:20px;color:var(--muted);font-weight:600;margin-right:8px}
+.ses .pr small{display:block;font-family:var(--body);font-weight:400;font-size:14px;color:var(--muted);margin-top:6px}
+.ses .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.gal{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.gal label{font-weight:600;width:100%}
+.gal input{flex:1;min-width:160px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+.gal button{border:0;background:var(--ink);color:#fff;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer}
+@media (max-width:760px){.ses{grid-template-columns:1fr}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -309,6 +325,30 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
     <button class="cta" data-pack="free">Vull la meva foto gratis</button>
   </div>
 
+  <section class="sec2" id="sessions">
+    <div class="ses">
+      <div class="pics"><img src="fotos/jb/jb-06.jpg" alt="Jugador amb la samarreta del club" loading="lazy"><img src="fotos/jb/jb-05.jpg" alt="Jugada durant un partit" loading="lazy"><img src="fotos/jb/jb-03.jpg" alt="Conducció de pilota" loading="lazy"></div>
+      <div>
+        <span class="sbadge" id="sesBadge">Pack de Nadal</span>
+        <h2>Sessió de futbol privada</h2>
+        <p class="lead" style="margin:0">La seva temporada, en 20 fotos. El regal que guardaran tota la vida.</p>
+        <ul>
+          <li>Sessió de 45 minuts al seu camp</li>
+          <li>Galeria privada amb unes 40 fotos per triar-ne 20</li>
+          <li>Editades a mà i entregades en digital, en alta resolució</li>
+          <li>Extres a 2 € la foto, o totes per +20 €</li>
+        </ul>
+        <div class="pr" id="sesPrice">60 €</div>
+        <div class="row"><a class="cta" id="sesCta" href="#" rel="noopener">Reserva la sessió</a><span style="font-size:14px;color:var(--muted)">També com a val regal</span></div>
+        <form class="gal" id="galForm">
+          <label for="galCode">Ja has fet la sessió? Entra a la teva galeria</label>
+          <input id="galCode" placeholder="Codi de la galeria" autocomplete="off" autocapitalize="off">
+          <button type="submit">Entra</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <section class="sec2" id="organitzadors">
     <div class="org">
       <div>
@@ -349,7 +389,7 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
 
   <footer>
     <div class="flogo" role="img" aria-label="unsolclik."></div>
-    <div class="btnrow"><button class="lnk" data-pack="remove">Vols que retirem una foto teva?</button></div>
+    <div class="btnrow"><a class="lnk" href="#sessions">La meva galeria</a><button class="lnk" data-pack="remove">Vols que retirem una foto teva?</button></div>
     <details>
       <summary>Privacitat i drets d'imatge</summary>
       <p>Les fotos d'aquesta pàgina es fan en esdeveniments esportius públics perquè els participants les puguin veure i obtenir. Les publiquem en baixa resolució i amb marca d'aigua; els originals només es lliuren a qui els sol·licita.</p>
@@ -840,6 +880,19 @@ $("qrEvents").onclick=e=>{ const b=e.target.closest("[data-qr]"); if(b) showQR(E
 setInterval(()=>{ renderLaunch(); renderPacks(); if($("drawer").classList.contains("show")) renderPackInfo(); },30000);
 renderAll(); renderCarousel(); renderStatic(); startAuto();
 Promise.all([loadImgs(), loadLogo(), document.fonts&&document.fonts.load?document.fonts.load("900 20px Archivo").catch(()=>{}):null]).finally(()=>{ for(const k in cache) delete cache[k]; renderAll(); renderCarousel(); renderStatic(); });
+</script>
+<script>
+(function(){
+  var bf = new Date() < new Date("2026-11-30T00:00:00+01:00");
+  document.getElementById("sesPrice").innerHTML = bf ? "<s>60 €</s>50 €<small>Black Friday · fins al 29/11</small>" : "60 €<small>20 fotos editades</small>";
+  if(bf) document.getElementById("sesBadge").textContent = "Pack de Nadal · Black Friday";
+  document.getElementById("sesCta").href = "https://wa.me/34639234492?text=" + encodeURIComponent("Hola Sergi! NADAL. M'interessa la sessió de futbol privada.");
+  document.getElementById("galForm").onsubmit = function(e){
+    e.preventDefault();
+    var c = document.getElementById("galCode").value.trim().replace(/^.*#/, "");
+    if(c) location.href = "tria.html#" + encodeURIComponent(c);
+  };
+})();
 </script>
 </body>
 </html>
