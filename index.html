@@ -291,7 +291,7 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
     <div class="ses">
       <div class="pics"><img src="fotos/jb/jb-06.jpg" alt="Jugador amb la samarreta del club" loading="lazy"><img src="fotos/jb/jb-05.jpg" alt="Jugada durant un partit" loading="lazy"><img src="fotos/jb/jb-03.jpg" alt="Conducció de pilota" loading="lazy"></div>
       <div>
-        <span class="sbadge" id="sesBadge">Pack de Nadal</span>
+        <span class="sbadge" id="sesBadge">Pack de Nadal · Places limitades</span>
         <h2>Regala-li el seu millor partit</h2>
         <p class="lead" style="margin:0">Les 20 millors fotos del teu fill o filla jugant un partit, editades com un professional.</p>
         <ul>
@@ -889,19 +889,12 @@ Promise.all([loadImgs(), loadLogo(), document.fonts&&document.fonts.load?documen
 </script>
 <script>
 (function(){
-  var bf = new Date() < new Date("2026-12-01T00:00:00+01:00");
-  document.getElementById("sesPrice").innerHTML = bf ? "<s>60 €</s>49 €<small>Black Friday · fins 30/11</small>" : "60 €<small>20 fotos editades</small>";
-  if(bf) document.getElementById("sesBadge").textContent = "Pack de Nadal · Black Friday";
-  var end = new Date("2026-12-01T00:00:00+01:00"), cd = document.getElementById("promoCd");
-  document.getElementById("promoTxt").innerHTML = bf ? "Regala-li el seu millor partit · <s>60 €</s> <b style='text-transform:none'>49 €</b> per Black Friday" : "Regala-li el seu millor partit · 20 fotos editades · 60 €";
-  function tick(){
-    var ms = end - new Date();
-    if(ms <= 0){ cd.hidden = true; return; }
-    var d = Math.floor(ms/864e5), h = Math.floor(ms/36e5)%24, m = Math.floor(ms/6e4)%60;
-    cd.textContent = "Acaba en " + (d ? d + "d " : "") + h + "h " + (m<10?"0":"") + m + "m";
-    cd.hidden = false;
-  }
-  if(bf){ tick(); setInterval(tick, 30000); }
+  // Preu fix 49 €; els 5 primers que reservin, 40 €. Posa early=false quan s'acabin les 5 places.
+  var early = true;
+  document.getElementById("sesPrice").innerHTML = "49 €<small>" + (early ? "<b style='color:var(--accent)'>Els 5 primers que reservin: 40 €</b>" : "20 fotos editades") + "</small>";
+  document.getElementById("promoTxt").innerHTML = "Regala-li el seu millor partit · 49&nbsp;€" + (early ? " · <b style='text-transform:none'>els 5 primers, 40&nbsp;€</b>" : "");
+  var cd = document.getElementById("promoCd");
+  if(early){ cd.textContent = "Places limitades"; cd.hidden = false; }
   document.getElementById("sesCta").href = "https://wa.me/34639234492?text=" + encodeURIComponent("Hola Sergi! NADAL. M'interessa el Pack de Nadal de fotos de futbol.");
   document.getElementById("galForm").onsubmit = function(e){
     e.preventDefault();
