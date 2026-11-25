@@ -889,10 +889,10 @@ Promise.all([loadImgs(), loadLogo(), document.fonts&&document.fonts.load?documen
 </script>
 <script>
 (function(){
-  var bf = new Date() < new Date("2026-11-30T00:00:00+01:00");
-  document.getElementById("sesPrice").innerHTML = bf ? "<s>60 €</s>49 €<small>Black Friday · fins al 29/11</small>" : "60 €<small>20 fotos editades</small>";
+  var bf = new Date() < new Date("2026-12-01T00:00:00+01:00");
+  document.getElementById("sesPrice").innerHTML = bf ? "<s>60 €</s>49 €<small>Black Friday · fins 30/11</small>" : "60 €<small>20 fotos editades</small>";
   if(bf) document.getElementById("sesBadge").textContent = "Pack de Nadal · Black Friday";
-  var end = new Date("2026-11-30T00:00:00+01:00"), cd = document.getElementById("promoCd");
+  var end = new Date("2026-12-01T00:00:00+01:00"), cd = document.getElementById("promoCd");
   document.getElementById("promoTxt").innerHTML = bf ? "Regala-li el seu millor partit · <s>60 €</s> <b style='text-transform:none'>49 €</b> per Black Friday" : "Regala-li el seu millor partit · 20 fotos editades · 60 €";
   function tick(){
     var ms = end - new Date();
