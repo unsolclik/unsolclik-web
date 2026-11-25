@@ -326,7 +326,7 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
       <div class="steps" aria-label="Com funciona">
         <div class="step"><i>1</i>Busca el teu dorsal</div>
         <div class="step"><i>2</i>Tria les fotos</div>
-        <div class="step"><i>3</i>Paga i rep-les al teu correu</div>
+        <div class="step"><i>3</i>Demana preu i rep-les al teu correu</div>
       </div>
     </div>
 
@@ -348,6 +348,7 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
   <div class="grid" id="grid"></div>
 
   <h2>Packs de fotografies</h2>
+  <p class="lead" style="margin-top:-4px">Tria el que vulguis i et passem el preu per privat.</p>
   <div class="packs" id="packs"></div>
   <p class="guar">🛡️ Garantia: si les fotos no t'agraden, et tornem els diners.</p>
 
@@ -379,7 +380,7 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
 
   <section class="sec2">
     <h2>Properes curses</h2>
-    <p class="lead">Les fotos es pengen aquí 48 hores després de cada esdeveniment. Deixa el teu dorsal i t'avisem, o reserva-les ja a preu de preventa.</p>
+    <p class="lead">Les fotos es pengen aquí 48 hores després de cada esdeveniment. Deixa el teu dorsal i t'avisem, o reserva-les ja.</p>
     <div class="next" id="upcoming"></div>
   </section>
 
@@ -410,11 +411,11 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
 
 <div class="bar" id="bar"><div class="wrap">
   <p><strong id="barCount"></strong> <span id="barPack"></span></p>
-  <button class="cta" id="openCart">Comprar</button>
+  <button class="cta" id="openCart">Sol·licita preu</button>
 </div></div>
 
 <div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" aria-label="La teva comanda">
+<aside class="drawer" id="drawer" aria-label="Sol·licitud de preu">
   <div class="dhead"><h3 id="dTitle">Sol·licita preu</h3><button class="x" id="closeCart" aria-label="Tanca">×</button></div>
   <div class="dbody">
     <div class="pack" id="pack"></div>
@@ -629,7 +630,7 @@ function renderGrid(){
   const dp=state.dorsalPack[state.ev.id];
   let f="";
   if(state.q){
-    f = list.length ? `<p><strong>${list.length} ${list.length===1?"foto":"fotos"}</strong> amb el ${state.ev.sport==="foot"?"número":"dorsal"} ${state.q}${state.point?" · "+state.point:""}</p><button class="allbtn" id="allBtn">Vull tota la meva cursa · ${fullPrice()} €</button>`
+    f = list.length ? `<p><strong>${list.length} ${list.length===1?"foto":"fotos"}</strong> amb el ${state.ev.sport==="foot"?"número":"dorsal"} ${state.q}${state.point?" · "+state.point:""}</p><button class="allbtn" id="allBtn">Vull totes les meves fotos · Demana preu</button>`
                     : `<p>Cap foto amb el dorsal <strong>${state.q}</strong> encara. Si hi has corregut, escriu-nos i la busquem a mà.</p>`;
   } else f=`<p><strong>${list.length} ${list.length===1?"foto":"fotos"}</strong>. Escriu el teu dorsal per veure només les teves.</p>`;
   $("found").innerHTML=f;
@@ -649,28 +650,27 @@ function fullPrice(ev=state.ev){ return launchLeft(ev)>0? P.fullLaunch : P.full;
 function total(){ const n=cart().size; return ptype==="buy"? n*P.single : ptype==="full"? fullPrice() : ptype==="family"? P.family : ptype==="presale"? P.presale : null; }
 function fmtLeft(ms){ const m=Math.floor(ms/60000), d=Math.floor(m/1440), h=Math.floor(m%1440/60), mi=m%60; return (d?d+" d ":"")+String(h).padStart(2,"0")+" h "+String(mi).padStart(2,"0")+" min"; }
 function renderLaunch(){ const l=launchLeft(), el=$("launch");
-  el.classList.toggle("show",l>0);
+  el.classList.toggle("show",false); return;
   if(l>0) el.innerHTML=`🔥 <span>Preu de llançament: <b>Tota la teva cursa a ${P.fullLaunch} €</b> (després ${P.full} €)</span><span class="cd">Acaba en ${fmtLeft(l)}</span>`;
 }
 function renderPacks(){
   const l=launchLeft(), n=state.q? state.ev.photos.filter(p=>p.dorsals.includes(+state.q)).length : 0;
-  const anchor = n>1? `<span class="anchor">Comprades soltes, les teves ${n} fotos serien ${n*P.single} €</span>` : "";
+  const anchor = "";
   $("packs").innerHTML=`
-    <div class="packc"><span class="q">Una o les que vulguis</span><b>Fotos soltes</b><div class="price">${P.single} € <small>/ foto</small></div><p>Tria-les a la galeria i paga només les que t'agradin.</p><button data-pack="buy">Tria fotos</button></div>
-    <div class="packc best"><span class="badge">${l>0?"Preu de llançament":"El més triat"}</span><span class="q">Tot el teu esdeveniment</span><b>Tota la teva cursa</b>
-      <div class="price">${fullPrice()} €${l>0?`<s>${P.full} €</s>`:""}</div>
+    <div class="packc"><span class="q">Una o les que vulguis</span><b>Fotos soltes</b><p>Tria-les a la galeria i et passem el preu de les que t'agradin.</p><button data-pack="buy">Sol·licita preu</button></div>
+    <div class="packc best"><span class="badge">El més triat</span><span class="q">Tot el teu esdeveniment</span><b>Tota la teva cursa</b>
       <ul class="stack"><li>Totes les teves fotos en alta qualitat, sense marques</li><li>Versió per a historias d'Instagram de cada foto</li><li>Pòster digital amb el nom de la cursa i el teu ${evWord()}</li><li>Garantia: si no t'agraden, et tornem els diners</li></ul>
-      ${anchor}<button data-pack="full">Vull tota la meva cursa</button></div>
-    <div class="packc"><span class="q">Fins a 4 ${evWord()}s</span><b>Pack família</b><div class="price">${P.family} €</div><p>Totes les fotos de tota la família en una sola compra. Ideal per a curses infantils.</p><button data-pack="family">Vull el pack família</button></div>
+      ${anchor}<button data-pack="full">Sol·licita preu</button></div>
+    <div class="packc"><span class="q">Fins a 4 ${evWord()}s</span><b>Pack família</b><p>Totes les fotos de tota la família en una sola compra. Ideal per a curses infantils.</p><button data-pack="family">Sol·licita preu</button></div>
     <div class="packc"><span class="q">Pressupost a mida</span><b>Equips i clubs</b><p>Les fotos de tot l'equip o la plantilla, per a les xarxes del club i per a les famílies.</p><button data-pack="equip">Demana pressupost</button></div>`;
-  $("optBuy").innerHTML=`Les fotos que he triat · ${cart().size*P.single} €<small id="selInfo"></small>`;
-  $("optFull").innerHTML=`Tota la teva cursa · ${fullPrice()} €<small>Totes les fotos del teu ${evWord()}, versió per a historias i pòster digital</small>`;
-  $("optFam").innerHTML=`Pack família · ${P.family} €<small>Totes les fotos de fins a 4 ${evWord()}s</small>`;
+  $("optBuy").innerHTML=`Les fotos que he triat${cart().size?" ("+cart().size+")":""}<small id="selInfo"></small>`;
+  $("optFull").innerHTML=`Tota la teva cursa<small>Totes les fotos del teu ${evWord()}, versió per a historias i pòster digital</small>`;
+  $("optFam").innerHTML=`Pack família<small>Totes les fotos de fins a 4 ${evWord()}s</small>`;
 }
 const MODES={
-  buy:{t:"La teva comanda"}, full:{t:"La teva comanda", l:`Dorsal o número`, ph:"P. ex. 127"}, family:{t:"La teva comanda", l:"Dorsals o números de la família", ph:"P. ex. 127, 128, 340"},
+  buy:{t:"Sol·licita preu"}, full:{t:"Sol·licita preu", l:`Dorsal o número`, ph:"P. ex. 127"}, family:{t:"Sol·licita preu", l:"Dorsals o números de la família", ph:"P. ex. 127, 128, 340"},
   equip:{t:"Pressupost per a equips i clubs", l:"Quin equip i per a què les voleu", ph:"P. ex. Juvenil A, fotos per a les famílies"},
-  presale:{t:"Preventa", l:"Dorsal (si ja el saps)", ph:"P. ex. 127"},
+  presale:{t:"Reserva les teves fotos", l:"Dorsal (si ja el saps)", ph:"P. ex. 127"},
   notify:{t:"Avisa'm quan surtin les fotos", l:"Dorsal (si ja el saps)", ph:"P. ex. 127"},
   event:{t:"Cobertura del teu esdeveniment", l:"Explica'ns l'esdeveniment", ph:"Data, lloc, esport i nombre aproximat de participants"},
   free:{t:"Foto gratis per a Instagram", l:"El teu usuari d'Instagram", ph:"@el_teu_usuari"},
@@ -694,9 +694,8 @@ function reference(){
 function renderCart(){
   const n=cart().size;
   $("bar").classList.toggle("show",n>0);
-  const better = n*P.single>fullPrice();
-  $("barCount").textContent=`${n} ${n===1?"foto":"fotos"} · ${n*P.single} €`;
-  $("barPack").textContent= better? `· Amb "Tota la teva cursa" només ${fullPrice()} €` : `· ${state.ev.name}`;
+  $("barCount").textContent=`${n} ${n===1?"foto triada":"fotos triades"}`;
+  $("barPack").textContent=`· ${state.ev.name}`;
   $("thumbs").innerHTML=[...cart()].map(id=>{const p=state.ev.photos.find(x=>x.id===id); return `<img alt="Foto ${id}" src="${drawPhoto(state.ev,p,400,500)}">`;}).join("");
   renderPacks();
   const si=$("selInfo"); if(si) si.textContent = n? [...cart()].sort().map(i=>"#"+i).join(", ") : "Primer tria les fotos a la galeria";
@@ -708,12 +707,11 @@ function renderPackInfo(){
   if(ptype==="event") h=`<p class="hint">Et responem en menys de 24 h amb una proposta per al teu esdeveniment.</p>`;
   else if(ptype==="free") h=`<p class="hint">${n===1?"Has triat 1 foto. ":"Tria <strong>una sola foto</strong> a la galeria. "}Penja-la mencionant <strong>@${CONFIG.instagram}</strong> i t'enviem la versió per a historias, sense marques.</p>`;
   else if(ptype==="remove") h=`<p class="hint">${n?`Has marcat ${n} ${n===1?"foto":"fotos"} de ${state.ev.name}. `:"Marca a la galeria la foto que vols que retirem, o descriu-la a sota. "}La retirarem com més aviat millor.</p>`;
-  else if(ptype==="notify") h=`<div class="row"><span>${up.name||""}</span></div><p class="hint">T'escrivim així que les fotos estiguin penjades, amb el preu de llançament.</p>`;
-  else if(ptype==="presale") h=`<div class="row"><span>Preventa · Tota la teva cursa · ${up.name||""}</span><b>${P.presale} €</b></div><p class="hint">Reserva ara a preu de preventa (després ${P.full} €). Rebràs totes les teves fotos, la versió per a historias i el pòster digital.</p>`;
+  else if(ptype==="notify") h=`<div class="row"><span>${up.name||""}</span></div><p class="hint">T'escrivim així que les fotos estiguin penjades.</p>`;
+  else if(ptype==="presale") h=`<div class="row"><span>Reserva · Tota la teva cursa · ${up.name||""}</span></div><p class="hint">Reserva-les ara i et passem el preu per privat. Rebràs totes les teves fotos, la versió per a historias i el pòster digital.</p>`;
   else if(ptype==="equip") h=`<div class="row"><span>${state.ev.name}</span></div><p class="hint">Et responem amb una proposta per a l'equip en menys de 24 h.</p>`;
   else {
-    const better = ptype==="buy" && n*P.single>fullPrice();
-    h=`<div class="row"><span>${state.ev.name}</span><b>${t} €</b></div><p class="hint ${better?"up":""}">${ptype==="buy"? (n? (better?`Amb "Tota la teva cursa" les tens totes per ${fullPrice()} € i estalvies ${n*P.single-fullPrice()} €.`:`${n} ${n===1?"foto":"fotos"} × ${P.single} €.`) : "Tria a la galeria les fotos que vulguis.") : ptype==="full"? (launchLeft()>0?`Preu de llançament (després ${P.full} €). Acaba en ${fmtLeft(launchLeft())}.`:"Totes les teves fotos, versió per a historias i pòster digital.") : "Escriu a sota els dorsals de la família."}</p>`;
+    h=`<div class="row"><span>${state.ev.name}</span></div><p class="hint">${ptype==="buy"? (n? `${n} ${n===1?"foto triada":"fotos triades"}. ` : "Tria a la galeria les fotos que vulguis. ") : ptype==="full"? "Totes les teves fotos, versió per a historias i pòster digital. " : "Escriu a sota els dorsals de la família. "}Et passem el preu per WhatsApp o correu en menys de 24 h.</p>`;
   }
   $("pack").innerHTML=h;
   $("thumbs").style.display = ["buy","free","remove"].includes(ptype)?"":"none";
@@ -729,7 +727,7 @@ function buildMsg(){
   else if(ptype==="notify") lines=["Hola unsolclik! Avisa'm quan surtin les fotos.","",`Cursa: ${up.name}`, ...(m?[`Dorsal: ${m}`]:[])];
   else if(ptype==="equip") lines=["Hola unsolclik! Voldria pressupost per a les fotos d'un equip o club.","",`Esdeveniment: ${state.ev.name}`, ...(state.point?[`Categoria: ${state.point}`]:[]), ...(m?[`Detalls: ${m}`]:[])];
   else {
-    lines=["Hola unsolclik! Vull fer aquesta comanda:","",`Pack: ${label()}`,`Total: ${total()} €`, `Esdeveniment: ${ptype==="presale"?up.name:state.ev.name}`];
+    lines=["Hola unsolclik! Em podeu passar preu?","",`Pack: ${label()}`, `Esdeveniment: ${ptype==="presale"?up.name:state.ev.name}`];
     if(ptype==="buy") lines.push(`Fotos: ${ids}`);
     if(ptype==="full") lines.push(`${evWord()[0].toUpperCase()+evWord().slice(1)}: ${m}`);
     if(ptype==="family") lines.push(`Dorsals: ${m}`);
@@ -754,18 +752,18 @@ function validReq(){
   if(ptype==="remove" && !cart().size && !m) return "Marca la foto a la galeria o descriu-la al comentari.";
   return "";
 }
-function stripeLink(){ if(!BUY.includes(ptype)) return ""; const k= ptype==="full"&&launchLeft()>0? "fullLaunch" : ptype; return CONFIG.stripe[k]||""; }
+function stripeLink(){ return ""; if(!BUY.includes(ptype)) return ""; const k= ptype==="full"&&launchLeft()>0? "fullLaunch" : ptype; return CONFIG.stripe[k]||""; }
 function updateSend(){
   const msg=buildMsg(), t=total(), sl=stripeLink();
-  const subj= BUY.includes(ptype)? `Comanda · ${label()} · ${t} €` : MODES[ptype].t+` · ${state.ev.name}`;
+  const subj= BUY.includes(ptype)? `Sol·licitud de preu · ${label()}` : MODES[ptype].t+` · ${state.ev.name}`;
   const wa=`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
   if(sl){ $("sendWa").href=`${sl}?client_reference_id=${encodeURIComponent(reference())}&prefilled_email=${encodeURIComponent($("email").value.trim())}`; $("sendWa").textContent=`Pagar ${t} € amb targeta`; }
-  else { $("sendWa").href=wa; $("sendWa").textContent= BUY.includes(ptype)? `Fes la comanda · ${t} €` : "Envia per WhatsApp"; }
+  else { $("sendWa").href=wa; $("sendWa").textContent= BUY.includes(ptype)? "Demana preu per WhatsApp" : "Envia per WhatsApp"; }
   $("sendMail").href=`mailto:${CONFIG.email}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(msg)}`;
   $("sendMail").textContent = sl? "Prefereixo Bizum o transferència" : "Envia per correu";
   if(sl) $("sendMail").href=wa;
   $("contactTxt").textContent = BUY.includes(ptype)
-    ? (sl? "Pagament segur amb Stripe. Rebràs les fotos al teu correu en menys de 24 h. Si no t'agraden, et tornem els diners." : "Et confirmem la comanda per WhatsApp amb l'enllaç de pagament (targeta o Bizum) i reps les fotos al teu correu en menys de 24 h. Si no t'agraden, et tornem els diners.")
+    ? (sl? "Pagament segur amb Stripe. Rebràs les fotos al teu correu en menys de 24 h. Si no t'agraden, et tornem els diners." : "Et responem en menys de 24 h amb el preu. Un cop confirmat, reps les fotos al teu correu.")
     : `També ens pots escriure a ${CONFIG.email} o al WhatsApp +${CONFIG.whatsapp}. Responem en menys de 24 h.`;
 }
 const demo=()=> CONFIG.whatsapp.includes("X") || CONFIG.email.includes("X");
@@ -864,7 +862,7 @@ function renderStatic(){
   document.querySelectorAll("[data-ig]").forEach(el=>el.textContent="@"+CONFIG.instagram);
   $("igLink").href=`https://www.instagram.com/${CONFIG.instagram}/`;
   if(CONFIG.avatar){ $("avatar").style.backgroundImage=`url(${CONFIG.avatar})`; $("avatar").textContent=""; }
-  $("upcoming").innerHTML=UPCOMING.map((u,i)=>`<div class="nextc"><div class="d">${u.when}</div><div><b>${u.name}</b><p>${u.note}</p></div><div class="acts"><button class="pri" data-pack="presale" data-up="${i}">Preventa · ${P.presale} €</button><button data-pack="notify" data-up="${i}">Avisa'm quan surtin</button></div></div>`).join("") || `<p class="lead">Aviat anunciarem les properes curses.</p>`;
+  $("upcoming").innerHTML=UPCOMING.map((u,i)=>`<div class="nextc"><div class="d">${u.when}</div><div><b>${u.name}</b><p>${u.note}</p></div><div class="acts"><button class="pri" data-pack="presale" data-up="${i}">Reserva les teves fotos</button><button data-pack="notify" data-up="${i}">Avisa'm quan surtin</button></div></div>`).join("") || `<p class="lead">Aviat anunciarem les properes curses.</p>`;
   renderStory();
   const f=featured(); $("orgPics").innerHTML=[f[0],f[1],f[2]].filter(Boolean).map(({e,p})=>`<img alt="${e.name}" src="${drawPhoto(e,p,360)}">`).join("");
 }
