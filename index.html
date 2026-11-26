@@ -658,12 +658,12 @@ function renderPacks(){
   $("packs").innerHTML=`
     <div class="packc"><span class="q">Una o les que vulguis</span><b>Fotos soltes</b><p>Tria-les a la galeria i et passem el preu de les que t'agradin.</p><button data-pack="buy">Sol·licita preu</button></div>
     <div class="packc best"><span class="badge">El més triat</span><span class="q">Tot el teu esdeveniment</span><b>Tota la teva cursa</b>
-      <ul class="stack"><li>Totes les teves fotos en alta qualitat, sense marques</li><li>Versió per a històries d'Instagram de cada foto</li><li>Pòster digital amb el nom de l'esdeveniment i el teu ${evWord()}</li><li>Garantia: si no t'agraden, et tornem els diners</li></ul>
+      <ul class="stack"><li>Totes les teves fotos en alta qualitat, sense marques</li><li>Versió per a històries d'Instagram de cada foto</li><li>Garantia: si no t'agraden, et tornem els diners</li></ul>
       ${anchor}<button data-pack="full">Sol·licita preu</button></div>
     <div class="packc"><span class="q">Fins a 4 ${evWord()}s</span><b>Pack família</b><p>Totes les fotos de tota la família en una sola compra. Ideal per a curses infantils.</p><button data-pack="family">Sol·licita preu</button></div>
     <div class="packc"><span class="q">Pressupost a mida</span><b>Equips i clubs</b><p>Les fotos de tot l'equip o la plantilla, per a les xarxes del club i per a les famílies.</p><button data-pack="equip">Demana pressupost</button></div>`;
   $("optBuy").innerHTML=`Les fotos que he triat${cart().size?" ("+cart().size+")":""}<small id="selInfo"></small>`;
-  $("optFull").innerHTML=`Tota la teva cursa<small>Totes les fotos del teu ${evWord()}, versió per a històries i pòster digital</small>`;
+  $("optFull").innerHTML=`Tota la teva cursa<small>Totes les fotos del teu ${evWord()}, i versió per a històries</small>`;
   $("optFam").innerHTML=`Pack família<small>Totes les fotos de fins a 4 ${evWord()}s</small>`;
 }
 const MODES={
@@ -707,10 +707,10 @@ function renderPackInfo(){
   else if(ptype==="free") h=`<p class="hint">${n===1?"Has triat 1 foto. ":"Tria <strong>una sola foto</strong> a la galeria. "}Penja-la mencionant <strong>@${CONFIG.instagram}</strong> i t'enviem la versió per a històries, sense marques.</p>`;
   else if(ptype==="remove") h=`<p class="hint">${n?`Has marcat ${n} ${n===1?"foto":"fotos"} de ${state.ev.name}. `:"Marca a la galeria la foto que vols que retirem, o descriu-la a sota. "}La retirarem com més aviat millor.</p>`;
   else if(ptype==="notify") h=`<div class="row"><span>${up.name||""}</span></div><p class="hint">T'escrivim així que les fotos estiguin penjades.</p>`;
-  else if(ptype==="presale") h=`<div class="row"><span>Reserva · Tota la teva cursa · ${up.name||""}</span></div><p class="hint">Reserva-les ara i et passem el preu per privat. Rebràs totes les teves fotos, la versió per a històries i el pòster digital.</p>`;
+  else if(ptype==="presale") h=`<div class="row"><span>Reserva · Tota la teva cursa · ${up.name||""}</span></div><p class="hint">Reserva-les ara i et passem el preu per privat. Rebràs totes les teves fotos i la versió per a històries.</p>`;
   else if(ptype==="equip") h=`<div class="row"><span>${state.ev.name}</span></div><p class="hint">Et responem amb una proposta per a l'equip en menys de 24 h.</p>`;
   else {
-    h=`<div class="row"><span>${state.ev.name}</span></div><p class="hint">${ptype==="buy"? (n? `${n} ${n===1?"foto triada":"fotos triades"}. ` : "Tria a la galeria les fotos que vulguis. ") : ptype==="full"? "Totes les teves fotos, versió per a històries i pòster digital. " : "Escriu a sota els dorsals de la família. "}Et passem el preu per WhatsApp o correu en menys de 24 h.</p>`;
+    h=`<div class="row"><span>${state.ev.name}</span></div><p class="hint">${ptype==="buy"? (n? `${n} ${n===1?"foto triada":"fotos triades"}. ` : "Tria a la galeria les fotos que vulguis. ") : ptype==="full"? "Totes les teves fotos i la versió per a històries. " : "Escriu a sota els dorsals de la família. "}Et passem el preu per WhatsApp o correu en menys de 24 h.</p>`;
   }
   $("pack").innerHTML=h;
   $("thumbs").style.display = ["buy","free","remove"].includes(ptype)?"":"none";
