@@ -378,7 +378,7 @@ footer .flogo{width:140px;aspect-ratio:1499/251;background:linear-gradient(90deg
     </div>
   </section>
 
-  <section class="sec2">
+  <section class="sec2" id="properes">
     <h2>Properes curses</h2>
     <p class="lead">Les fotos es pengen aquí 48 hores després de cada esdeveniment. Deixa el teu dorsal i t'avisem, o reserva-les ja.</p>
     <div class="next" id="upcoming"></div>
@@ -482,7 +482,6 @@ const CONFIG = {
 };
 /* Properes curses: afegeix-ne o treu-ne */
 const UPCOMING = [
-  { id:"ccnit26", when:"Nov. 2026", name:"Ciclocròs nocturn", note:"Data i lloc per confirmar" }
 ];
 const HEADLINES = { bike:"Tu, entrant al fang sense aixecar el peu.", run:"Tu, a l'última baixada, donant-ho tot.", foot:"Tu, un segon abans de tocar la pilota." };
 
@@ -862,6 +861,7 @@ function renderStatic(){
   document.querySelectorAll("[data-ig]").forEach(el=>el.textContent="@"+CONFIG.instagram);
   $("igLink").href=`https://www.instagram.com/${CONFIG.instagram}/`;
   if(CONFIG.avatar){ $("avatar").style.backgroundImage=`url(${CONFIG.avatar})`; $("avatar").textContent=""; }
+  { const pr=document.getElementById("properes"); if(pr) pr.hidden=!UPCOMING.length; }
   $("upcoming").innerHTML=UPCOMING.map((u,i)=>`<div class="nextc"><div class="d">${u.when}</div><div><b>${u.name}</b><p>${u.note}</p></div><div class="acts"><button class="pri" data-pack="presale" data-up="${i}">Reserva les teves fotos</button><button data-pack="notify" data-up="${i}">Avisa'm quan surtin</button></div></div>`).join("") || `<p class="lead">Aviat anunciarem les properes curses.</p>`;
   renderStory();
   const f=featured(); $("orgPics").innerHTML=[f[0],f[1],f[2]].filter(Boolean).map(({e,p})=>`<img alt="${e.name}" src="${drawPhoto(e,p,360)}">`).join("");
